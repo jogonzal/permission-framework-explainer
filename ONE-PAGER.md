@@ -24,9 +24,9 @@ ALLOW  endpoint "GET /users/{id}"
 
 ---
 
-## The companion site
+## The companion site (i.e. debugging tool)
 
-The website is a working model, not a brochure. Each bundled example (GitHub, Stripe, Slack, healthcare, multiplayer, plus a minimal `basic` graph) is a complete instance you can open.
+Each bundled example (GitHub, Stripe, Slack, healthcare, multiplayer, plus a minimal `basic` graph) is a complete instance you can open.
 
 From an instance you can:
 
@@ -38,11 +38,13 @@ That is how you answer “what does `role:admin` actually grant?” without grep
 
 ---
 
-## The distinctive tool: remove a grant with a real diff
+## Design rationale: Focusing on permission connection removal
 
-Grown DAGs are easy to widen and hard to narrow. Taking privilege away means deleting the right `implies` edges — often more than one, often in more than one file — without breaking formatting.
+Large codebases have very wide/deep DAGs that are hard to narrow/trim. I chose to focus on the aspect of explaining the DAG, and particularly tackling the problem of "Taking privilege away" which means deleting the right `implies` edges — often more than one, often in more than one file — without breaking other scenarios. This is a common case in incidents where we discover we've granted "too many permissions", and often a very hard/complicated task to perform safely.
 
-On a permission page, expand a connection and choose **Show changes required to remove this connection**. The site:
+## Permission removal tool
+
+To try this out: On a permission page, expand a connection and choose **Show changes required to remove this connection**. The site:
 
 1. Finds every implication path from A to B.
 2. Collects the `implies` edges on those paths.
@@ -66,22 +68,4 @@ Example: stop `admin` from granting `users:read`. The path is `admin → users:w
 +    implies: [billing:write]
 ```
 
-That patch is computed from the real source text, not a schematic. Paste it into a pull request.
-
----
-
-## How the pieces fit
-
-```
-YAML (permissions / resources / endpoints)
-        │
-        ▼
-   validate → DAG + closures
-        │
-        ├── runtime:  check / explain  (library or permctl)
-        └── explainer site
-                ├── browse nodes and the DAG
-                └── removal diffs against the YAML you already have
-```
-
-Define the model in reviewable config. Enforce it at request time. Use the site when you need to understand a grant — or take one away.
+That patch is computed from the real source text, not a schematic. This is easy to bring into a pull request!
