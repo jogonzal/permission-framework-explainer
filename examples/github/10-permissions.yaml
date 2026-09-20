@@ -1,18 +1,38 @@
-# A GitHub-like permission DAG. Roles (admin, maintain, write, triage, read)
-# are ordinary permissions that imply finer-grained ones, so a check against
-# any endpoint can be explained down to the leaf permission it needs.
+# A GitHub-like permission DAG, sized like a mid-size company's after a few
+# years of iteration: fine-grained leaves at the bottom, then capability
+# bundles, job functions, repository roles (built-in and custom), machine
+# identities, organisation roles, and finally the enterprise layer.
+#
+# Layers, bottom to top:
+#   1. leaves        atomic permissions, one per thing the API can do
+#   2. cap:*         capability bundles, the leaves that always travel together
+#   3. job:*         job functions, granted to people rather than to code
+#   4. role:*        repository roles: GitHub's five, plus custom ones
+#   5. app:*/token:* machine identities (GitHub Apps, the Actions token)
+#   6. org:*         organisation roles
+#   7. enterprise:*  the enterprise above the organisations
 permissions:
-  # ---- leaf permissions: repositories ----
+  # ------------------------------------------------------------------
+  # 1. Leaves
+  # ------------------------------------------------------------------
+
+  # ---- repositories ----
   - id: repo:read
     description: Read repository metadata and clone
   - id: repo:write
     description: Change repository settings
     implies: [repo:read]
+  - id: repo:visibility
+    description: Make a repository public or private
+    implies: [repo:write]
+  - id: repo:archive
+    description: Archive or unarchive a repository
+    implies: [repo:write]
   - id: repo:delete
     description: Delete or transfer a repository
     implies: [repo:write]
 
-  # ---- leaf permissions: code ----
+  # ---- code ----
   - id: contents:read
     description: Read files, commits, branches and tags
   - id: contents:write
@@ -21,15 +41,33 @@ permissions:
   - id: contents:force-push
     description: Rewrite history on any branch
     implies: [contents:write]
+  - id: workflows:write
+    description: Add or change workflow files under .github/workflows
+    implies: [contents:write]
 
-  # ---- issues and pull requests ----
+  # ---- branch protection and rulesets ----
+  - id: branch:read
+    description: Read branch protection rules and rulesets
+  - id: branch:write
+    description: Create and edit branch protection rules and rulesets
+    implies: [branch:read]
+  - id: branch:bypass
+    description: Push to a protected branch without satisfying its rules
+    implies: [branch:read]
+
+  # ---- issues ----
   - id: issues:read
   - id: issues:triage
-    description: Label, assign and close issues
+    description: Label, assign, transfer and close issues
     implies: [issues:read]
   - id: issues:write
     description: Create and edit issues and comments
     implies: [issues:triage]
+  - id: issues:delete
+    description: Delete issues and comments
+    implies: [issues:write]
+
+  # ---- pull requests ----
   - id: pulls:read
   - id: pulls:write
     description: Open and edit pull requests
@@ -37,43 +75,485 @@ permissions:
   - id: pulls:review
     description: Approve or request changes on pull requests
     implies: [pulls:read]
+  - id: pulls:review-dismiss
+    description: Dismiss another reviewer's review
+    implies: [pulls:review]
   - id: pulls:merge
     description: Merge pull requests
     implies: [pulls:write, contents:write]
 
-  # ---- collaborators, users and organisation ----
+  # ---- discussions, wiki, pages, projects ----
+  - id: discussions:read
+  - id: discussions:write
+    description: Start discussions and reply in them
+    implies: [discussions:read]
+  - id: discussions:moderate
+    description: Lock, delete and mark answers in discussions
+    implies: [discussions:write]
+  - id: wiki:read
+  - id: wiki:write
+    description: Edit wiki pages
+    implies: [wiki:read]
+  - id: pages:read
+    description: Read GitHub Pages configuration and builds
+  - id: pages:write
+    description: Configure GitHub Pages and trigger builds
+    implies: [pages:read]
+  - id: projects:read
+  - id: projects:write
+    description: Add and move items on a project board
+    implies: [projects:read]
+  - id: projects:admin
+    description: Create, delete and change the visibility of projects
+    implies: [projects:write]
+
+  # ---- actions, checks and runners ----
+  - id: actions:read
+    description: Read workflow runs, jobs and logs
+  - id: actions:write
+    description: Run, re-run and cancel workflows
+    implies: [actions:read]
+  - id: actions:manage
+    description: Enable and disable workflows, change Actions settings
+    implies: [actions:write]
+  - id: actions:cache-delete
+    description: Evict entries from the Actions cache
+    implies: [actions:read]
+  - id: checks:read
+    description: Read check runs and check suites
+  - id: checks:write
+    description: Create and update check runs
+    implies: [checks:read]
+  - id: runners:read
+    description: List self-hosted runners and runner groups
+  - id: runners:write
+    description: Register, remove and regroup self-hosted runners
+    implies: [runners:read]
+
+  # ---- configuration and secrets ----
+  - id: variables:read
+    description: Read configuration variables
+  - id: variables:write
+    description: Create and update configuration variables
+    implies: [variables:read]
+  - id: secrets:read
+    description: Read secret names and metadata, never their values
+  - id: secrets:write
+    description: Create, update and delete secrets
+    implies: [secrets:read]
+  - id: environments:read
+    description: Read deployment environments and their protection rules
+  - id: environments:write
+    description: Create environments and change their protection rules
+    implies: [environments:read]
+  - id: environments:approve
+    description: Approve a deployment waiting on an environment reviewer
+    implies: [environments:read]
+
+  # ---- deployments, packages, releases ----
+  - id: deployments:read
+  - id: deployments:write
+    description: Create deployments and deployment statuses
+    implies: [deployments:read]
+  - id: deployments:promote
+    description: Deploy to an environment marked production
+    implies: [deployments:write]
+  - id: packages:read
+    description: Download packages from the registry
+  - id: packages:write
+    description: Publish packages to the registry
+    implies: [packages:read]
+  - id: packages:delete
+    description: Delete packages and package versions
+    implies: [packages:write]
+  - id: releases:read
+  - id: releases:write
+    description: Draft, publish and edit releases and their assets
+    implies: [releases:read]
+  - id: releases:delete
+    description: Delete releases and tags they point at
+    implies: [releases:write]
+
+  # ---- security ----
+  - id: code-scanning:read
+    description: Read code scanning alerts and analyses
+  - id: code-scanning:write
+    description: Upload analyses and dismiss code scanning alerts
+    implies: [code-scanning:read]
+  - id: secret-scanning:read
+    description: Read secret scanning alerts
+  - id: secret-scanning:dismiss
+    description: Close secret scanning alerts as revoked or false positive
+    implies: [secret-scanning:read]
+  - id: dependabot:read
+    description: Read Dependabot alerts and the dependency graph
+  - id: dependabot:write
+    description: Dismiss Dependabot alerts and manage security updates
+    implies: [dependabot:read]
+  - id: advisories:read
+    description: Read draft repository security advisories
+  - id: advisories:write
+    description: Write and publish repository security advisories
+    implies: [advisories:read]
+  - id: security-policy:write
+    description: Set organisation-wide security configurations and enablement
+    implies: [code-scanning:read, secret-scanning:read, dependabot:read]
+
+  # ---- visibility into the organisation ----
+  - id: audit-log:read
+    description: Read the audit log and its streaming configuration
+  - id: insights:read
+    description: Read traffic, dependency and Actions usage insights
+
+  # ---- people ----
   - id: collaborators:read
   - id: collaborators:write
-    description: Invite and remove collaborators, change their roles
+    description: Invite and remove repository collaborators, change their roles
     implies: [collaborators:read]
+  - id: members:read
+    description: List organisation members and their roles
+  - id: members:invite
+    description: Invite members to the organisation
+    implies: [members:read]
+  - id: members:remove
+    description: Remove members from the organisation
+    implies: [members:read]
+  - id: teams:read
+  - id: teams:membership
+    description: Add and remove people from a team
+    implies: [teams:read]
+  - id: teams:write
+    description: Create, nest and delete teams
+    implies: [teams:membership]
+  - id: moderation:write
+    description: Block users from the organisation, hide their comments
   - id: users:read
     description: Read user profiles
   - id: users:write
-    description: Edit the authenticated user's profile
+    description: Edit the authenticated user's own profile
     implies: [users:read]
-  - id: org:read
-  - id: org:admin
-    description: Manage organisation settings and members
-    implies: [org:read, collaborators:write]
 
-  # ---- repository roles, as GitHub defines them ----
+  # ---- organisation plumbing ----
+  - id: org:read
+  - id: org:write
+    description: Change organisation profile and member privilege defaults
+    implies: [org:read]
+  - id: sso:read
+    description: Read SAML single sign-on configuration and sessions
+  - id: sso:write
+    description: Configure SAML single sign-on, revoke authorised credentials
+    implies: [sso:read]
+  - id: scim:write
+    description: Provision and deprovision members through SCIM
+    implies: [sso:read]
+  - id: apps:read
+    description: List installed GitHub Apps and their permissions
+  - id: apps:install
+    description: Install GitHub Apps and change their repository access
+    implies: [apps:read]
+  - id: apps:write
+    description: Create and configure the organisation's own GitHub Apps
+    implies: [apps:install]
+  - id: webhooks:read
+  - id: webhooks:write
+    description: Create, edit and redeliver webhooks
+    implies: [webhooks:read]
+  - id: migrations:read
+    description: Read migration archives
+  - id: migrations:write
+    description: Start migrations and export archives
+    implies: [migrations:read]
+  - id: billing:read
+    description: Read billing usage and cost centres
+  - id: billing:write
+    description: Change the plan, payment method and spending limits
+    implies: [billing:read]
+  - id: copilot:read
+    description: Read Copilot seat assignments and usage
+  - id: copilot:write
+    description: Assign and revoke Copilot seats
+    implies: [copilot:read]
+  - id: codespaces:read
+  - id: codespaces:write
+    description: Create and manage your own codespaces
+    implies: [codespaces:read]
+  - id: codespaces:admin
+    description: Manage anyone's codespaces, set org codespace policy
+    implies: [codespaces:write]
+
+  # ---- enterprise plumbing ----
+  - id: enterprise:read
+    description: Read enterprise profile and the organisations under it
+  - id: enterprise:settings
+    description: Change enterprise settings and create organisations
+    implies: [enterprise:read]
+  - id: enterprise:policies
+    description: Set policies that every organisation inherits
+    implies: [enterprise:read]
+  - id: enterprise:billing
+    description: Read and change enterprise billing
+    implies: [enterprise:read]
+  - id: enterprise:audit
+    description: Read the enterprise-wide audit log
+    implies: [enterprise:read]
+
+  # ------------------------------------------------------------------
+  # 2. Capability bundles: the leaves that are always granted together
+  # ------------------------------------------------------------------
+  - id: cap:code-read
+    description: See the code and how it is protected
+    implies: [repo:read, contents:read, branch:read]
+  - id: cap:code-contribute
+    description: Push branches and open pull requests
+    implies: [cap:code-read, contents:write, pulls:write]
+  - id: cap:code-review
+    description: Review other people's pull requests
+    implies: [cap:code-read, pulls:review]
+  - id: cap:issue-triage
+    description: Keep the issue tracker and boards tidy
+    implies: [issues:triage, pulls:read, projects:write]
+  - id: cap:ci-observe
+    description: See what CI is doing without touching it
+    implies: [actions:read, checks:read, deployments:read, runners:read, insights:read]
+  - id: cap:ci-operate
+    description: Drive CI by re-running, cancelling, reporting checks and evicting caches
+    implies: [cap:ci-observe, actions:write, actions:cache-delete, checks:write]
+  - id: cap:ci-configure
+    description: Own the CI configuration itself
+    implies: [cap:ci-operate, actions:manage, workflows:write, variables:write]
+  - id: cap:secret-manage
+    description: Hold the keys CI runs with
+    implies: [secrets:write, variables:write, environments:write]
+  - id: cap:release-publish
+    description: Cut a release and ship the artefacts
+    implies: [cap:ci-observe, releases:write, packages:write, deployments:write]
+  - id: cap:deploy-production
+    description: Put a release in front of customers
+    implies: [cap:release-publish, deployments:promote, environments:approve]
+  - id: cap:branch-govern
+    description: Decide what may land on protected branches
+    implies: [branch:write, pulls:review-dismiss]
+  - id: cap:security-observe
+    description: Read every security signal on a repository
+    implies: [code-scanning:read, secret-scanning:read, dependabot:read, advisories:read]
+  - id: cap:security-triage
+    description: Work the alert queue
+    implies: [cap:security-observe, code-scanning:write, secret-scanning:dismiss, dependabot:write]
+  - id: cap:security-govern
+    description: Set the rules the alert queue is worked against
+    implies: [cap:security-triage, advisories:write, security-policy:write, cap:branch-govern]
+  - id: cap:repo-admin-lite
+    description: The repository settings a maintainer needs day to day
+    implies: [repo:write, webhooks:write, pages:write, wiki:write]
+  - id: cap:community-moderate
+    description: Moderate everything people write
+    implies: [issues:delete, discussions:moderate, moderation:write]
+  - id: cap:member-manage
+    description: Bring people in and put them on teams
+    implies: [members:invite, teams:membership]
+
+  # ------------------------------------------------------------------
+  # 3. Job functions: bundles granted to people, independent of any repo role
+  # ------------------------------------------------------------------
+  - id: job:engineer
+    description: Day-to-day product engineer
+    implies: [cap:code-contribute, cap:code-review, cap:issue-triage, cap:ci-observe]
+  - id: job:ci-engineer
+    description: Owns the build system and the runners
+    implies: [cap:code-contribute, cap:ci-configure, runners:write]
+  - id: job:release-manager
+    description: Cuts releases, does not deploy them
+    implies: [cap:code-review, cap:release-publish]
+  - id: job:sre
+    description: Deploys, holds production secrets, approves environments
+    implies: [cap:deploy-production, cap:ci-operate, cap:secret-manage]
+  - id: job:security-analyst
+    description: Works the alert queue, reads code to confirm findings
+    implies: [cap:code-read, cap:security-triage]
+  - id: job:security-engineer
+    description: Owns security configuration across repositories
+    implies: [job:security-analyst, cap:security-govern, audit-log:read]
+  - id: job:support-engineer
+    description: Answers customers, reproduces bugs, files issues
+    implies: [cap:code-read, cap:issue-triage, issues:write, discussions:write]
+  - id: job:community-manager
+    description: Runs the public side of the repositories
+    implies: [cap:issue-triage, cap:community-moderate, discussions:write]
+  - id: job:data-analyst
+    description: Reports on delivery without changing anything
+    implies: [insights:read, projects:read, pulls:read, issues:read]
+
+  # ------------------------------------------------------------------
+  # 4. Repository roles
+  # ------------------------------------------------------------------
+
+  # ---- the five built-in roles ----
   - id: role:read
     description: Read role
-    implies: [repo:read, contents:read, issues:read, pulls:read, collaborators:read]
+    implies:
+      [
+        cap:code-read,
+        issues:read,
+        pulls:read,
+        discussions:read,
+        wiki:read,
+        pages:read,
+        projects:read,
+        packages:read,
+        releases:read,
+        collaborators:read,
+      ]
   - id: role:triage
     description: Triage role
-    implies: [role:read, issues:triage]
+    implies: [role:read, cap:issue-triage]
   - id: role:write
     description: Write role
-    implies: [role:triage, contents:write, issues:write, pulls:write, pulls:review, pulls:merge]
+    implies:
+      [
+        role:triage,
+        cap:code-contribute,
+        cap:code-review,
+        cap:ci-operate,
+        pulls:merge,
+        issues:write,
+        discussions:write,
+        wiki:write,
+        packages:write,
+        releases:write,
+      ]
   - id: role:maintain
     description: Maintain role
-    implies: [role:write, repo:write]
+    implies:
+      [
+        role:write,
+        cap:repo-admin-lite,
+        cap:branch-govern,
+        cap:ci-configure,
+        cap:security-observe,
+        environments:write,
+      ]
   - id: role:admin
     description: Admin role
-    implies: [role:maintain, repo:delete, contents:force-push, collaborators:write]
+    implies:
+      [
+        role:maintain,
+        cap:secret-manage,
+        cap:security-triage,
+        cap:community-moderate,
+        repo:delete,
+        repo:visibility,
+        repo:archive,
+        contents:force-push,
+        branch:bypass,
+        collaborators:write,
+        projects:admin,
+        packages:delete,
+        releases:delete,
+      ]
 
-  # ---- organisation owner ----
+  # ---- custom repository roles the company added over the years ----
+  - id: role:custom-contractor
+    description: Read plus push to branches; cannot review or merge
+    implies: [role:read, cap:code-contribute]
+  - id: role:custom-docs-maintainer
+    description: Owns docs, the wiki and the published site, nothing else
+    implies: [role:triage, cap:code-contribute, wiki:write, pages:write]
+  - id: role:custom-release-manager
+    description: Write, plus everything needed to cut and tag a release
+    implies: [role:write, job:release-manager, environments:write]
+  - id: role:custom-ci-admin
+    description: Write, plus ownership of workflows and runners
+    implies: [role:write, job:ci-engineer]
+  - id: role:custom-security-reviewer
+    description: Triage, plus the security queue and a binding review
+    implies: [role:triage, job:security-analyst, pulls:review]
+  - id: role:custom-oncall
+    description: Read, plus the CI and deployment levers an incident needs
+    implies: [role:read, cap:ci-operate, environments:approve, deployments:write]
+
+  # ------------------------------------------------------------------
+  # 5. Machine identities: apps and tokens, never granted to a person
+  # ------------------------------------------------------------------
+  - id: token:actions-default
+    description: The default GITHUB_TOKEN of a workflow run
+    implies: [cap:code-read, checks:write, actions:read, packages:read]
+  - id: app:ci-bot
+    description: The build app; runs workflows and reports checks
+    implies: [cap:ci-operate, cap:code-read]
+  - id: app:deploy-bot
+    description: The deployment app; ships what CI built
+    implies: [cap:ci-observe, deployments:promote, packages:write, environments:read]
+  - id: app:security-scanner
+    description: Third-party scanner; uploads analyses, never reads secrets
+    implies: [cap:security-observe, code-scanning:write, checks:write]
+  - id: app:dependency-bot
+    description: Opens dependency bump pull requests
+    implies: [cap:code-contribute, dependabot:write]
+  - id: app:compliance-exporter
+    description: Streams the audit log and repository metadata out
+    implies: [audit-log:read, org:read, members:read, repo:read]
+
+  # ------------------------------------------------------------------
+  # 6. Organisation roles
+  # ------------------------------------------------------------------
+  - id: org:member
+    description: Plain organisation member
+    implies: [org:read, members:read, teams:read, projects:read, codespaces:write]
+  - id: org:billing-manager
+    description: Billing manager; sees no code
+    implies: [org:read, billing:write, copilot:write]
+  - id: org:member-manager
+    description: Invites, removes and teams people up
+    implies: [org:member, cap:member-manage, members:remove, teams:write]
+  - id: org:moderator
+    description: Organisation moderator
+    implies: [org:member, cap:community-moderate]
+  - id: org:app-manager
+    description: Owns the GitHub Apps and webhooks estate
+    implies: [org:member, apps:write, webhooks:write]
+  - id: org:cicd-admin
+    description: Owns CI, runners and deployment across the organisation
+    implies: [org:member, job:ci-engineer, job:sre, apps:read]
+  - id: org:security-manager
+    description: Security manager; read on every repository, writes policy
+    implies: [org:member, job:security-engineer, role:read, insights:read]
+  - id: org:compliance-officer
+    description: Evidence gathering; reads everything, changes nothing
+    implies: [org:member, audit-log:read, insights:read, migrations:read, sso:read]
+  - id: org:admin
+    description: Organisation administrator
+    implies:
+      [
+        org:member-manager,
+        org:moderator,
+        org:app-manager,
+        org:compliance-officer,
+        org:write,
+        sso:write,
+        scim:write,
+        migrations:write,
+        codespaces:admin,
+        collaborators:write,
+      ]
   - id: org:owner
     description: Organisation owner
-    implies: [role:admin, org:admin]
+    implies: [org:admin, org:billing-manager, org:cicd-admin, org:security-manager, role:admin, releases:delete]
+
+  # ------------------------------------------------------------------
+  # 7. Enterprise roles, above the organisations
+  # ------------------------------------------------------------------
+  - id: enterprise:member
+    description: Member of the enterprise, not of any particular organisation
+    implies: [enterprise:read]
+  - id: enterprise:billing-manager
+    description: Enterprise billing manager
+    implies: [enterprise:member, enterprise:billing, billing:read]
+  - id: enterprise:compliance-officer
+    description: Reads the enterprise audit log across organisations
+    implies: [enterprise:member, enterprise:audit, audit-log:read]
+  - id: enterprise:admin
+    description: Enterprise administrator; sets policy, admins organisations
+    implies: [enterprise:member, enterprise:settings, enterprise:policies, org:admin]
+  - id: enterprise:owner
+    description: Enterprise owner
+    implies: [enterprise:admin, enterprise:billing-manager, enterprise:compliance-officer, org:owner]

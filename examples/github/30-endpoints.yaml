@@ -1,17 +1,26 @@
 # A subset of the GitHub REST API. Endpoints usually point at a resource action
-# so their requirement moves with the resource; a few name permissions directly.
+# so their requirement moves with the resource; a few name permissions directly,
+# and several need more than one permission at once — those are the interesting
+# ones, because no single role is enough unless it reaches both leaves.
 endpoints:
-  # repositories
+  # ---- repositories ----
   - id: GET /repos/{owner}/{repo}
     requires: [repos.read]
   - id: PATCH /repos/{owner}/{repo}
     requires: [repos.write]
+  - id: PUT /repos/{owner}/{repo}/private
+    description: Flip a repository between public and private
+    requires: [repos.visibility, org:read]
+  - id: PUT /repos/{owner}/{repo}/archive
+    requires: [repos.archive]
   - id: DELETE /repos/{owner}/{repo}
     requires: [repos.delete]
   - id: POST /repos/{owner}/{repo}/transfer
     requires: [repos.delete, org:read]
+  - id: POST /orgs/{org}/repos
+    requires: [repos.write, org:read]
 
-  # commits, branches, contents
+  # ---- code ----
   - id: GET /repos/{owner}/{repo}/commits
     requires: [commits.read]
   - id: GET /repos/{owner}/{repo}/commits/{ref}
@@ -20,10 +29,28 @@ endpoints:
     requires: [commits.read]
   - id: PUT /repos/{owner}/{repo}/contents/{path}
     requires: [commits.push]
+  - id: PUT /repos/{owner}/{repo}/.github/workflows/{file}
+    description: Change a workflow file; guarded above an ordinary push
+    requires: [workflows.write]
   - id: DELETE /repos/{owner}/{repo}/git/refs/{ref}
     requires: [commits.force-push]
+  - id: POST /repos/{owner}/{repo}/merge-upstream
+    requires: [commits.push]
 
-  # issues
+  # ---- branch protection and rulesets ----
+  - id: GET /repos/{owner}/{repo}/branches/{branch}/protection
+    requires: [branches.read]
+  - id: PUT /repos/{owner}/{repo}/branches/{branch}/protection
+    requires: [branches.write]
+  - id: GET /repos/{owner}/{repo}/rulesets
+    requires: [branches.read]
+  - id: POST /repos/{owner}/{repo}/rulesets
+    requires: [branches.write]
+  - id: POST /repos/{owner}/{repo}/branches/{branch}/force-push
+    description: Land on a protected branch without satisfying its rules
+    requires: [branches.bypass, commits.force-push]
+
+  # ---- issues ----
   - id: GET /repos/{owner}/{repo}/issues
     requires: [issues.read]
   - id: POST /repos/{owner}/{repo}/issues
@@ -32,24 +59,155 @@ endpoints:
     requires: [issues.write]
   - id: POST /repos/{owner}/{repo}/issues/{number}/labels
     requires: [issues.triage]
+  - id: PUT /repos/{owner}/{repo}/issues/{number}/lock
+    requires: [issues.triage]
+  - id: DELETE /repos/{owner}/{repo}/issues/comments/{id}
+    requires: [issues.delete]
 
-  # pull requests
+  # ---- pull requests ----
   - id: GET /repos/{owner}/{repo}/pulls
     requires: [pulls.read]
   - id: POST /repos/{owner}/{repo}/pulls
     requires: [pulls.write]
   - id: POST /repos/{owner}/{repo}/pulls/{number}/reviews
     requires: [pulls.review]
+  - id: PUT /repos/{owner}/{repo}/pulls/{number}/reviews/{id}/dismissals
+    requires: [pulls.dismiss]
   - id: PUT /repos/{owner}/{repo}/pulls/{number}/merge
     requires: [pulls.merge]
+  - id: POST /repos/{owner}/{repo}/pulls/{number}/merge-queue
+    description: Queue a pull request that a ruleset still gates
+    requires: [pulls.merge, branches.read]
 
-  # collaborators
+  # ---- discussions, wiki, pages, projects ----
+  - id: GET /repos/{owner}/{repo}/discussions
+    requires: [discussions.read]
+  - id: POST /repos/{owner}/{repo}/discussions
+    requires: [discussions.write]
+  - id: PUT /repos/{owner}/{repo}/discussions/{number}/lock
+    requires: [discussions.moderate]
+  - id: GET /repos/{owner}/{repo}/wiki
+    requires: [wikis.read]
+  - id: PUT /repos/{owner}/{repo}/wiki/{page}
+    requires: [wikis.write]
+  - id: GET /repos/{owner}/{repo}/pages
+    requires: [pages.read]
+  - id: POST /repos/{owner}/{repo}/pages/builds
+    requires: [pages.write]
+  - id: GET /orgs/{org}/projects
+    requires: [projects.read]
+  - id: POST /orgs/{org}/projects/{number}/items
+    requires: [projects.write]
+  - id: DELETE /orgs/{org}/projects/{number}
+    requires: [projects.admin]
+
+  # ---- actions, checks, runners ----
+  - id: GET /repos/{owner}/{repo}/actions/runs
+    requires: [runs.read]
+  - id: GET /repos/{owner}/{repo}/actions/runs/{id}/logs
+    requires: [runs.read]
+  - id: POST /repos/{owner}/{repo}/actions/runs/{id}/rerun
+    requires: [runs.write]
+  - id: POST /repos/{owner}/{repo}/actions/runs/{id}/cancel
+    requires: [runs.write]
+  - id: PUT /repos/{owner}/{repo}/actions/permissions
+    requires: [workflows.manage]
+  - id: DELETE /repos/{owner}/{repo}/actions/caches
+    requires: [caches.delete]
+  - id: GET /repos/{owner}/{repo}/check-runs/{id}
+    requires: [checks.read]
+  - id: POST /repos/{owner}/{repo}/check-runs
+    requires: [checks.write]
+  - id: GET /orgs/{org}/actions/runners
+    requires: [runners.read]
+  - id: POST /orgs/{org}/actions/runner-groups
+    requires: [runners.write, org:read]
+
+  # ---- configuration, secrets, environments ----
+  - id: GET /repos/{owner}/{repo}/actions/variables
+    requires: [variables.read]
+  - id: POST /repos/{owner}/{repo}/actions/variables
+    requires: [variables.write]
+  - id: GET /repos/{owner}/{repo}/actions/secrets
+    description: Secret names and metadata; values are never returned
+    requires: [secrets.read]
+  - id: PUT /repos/{owner}/{repo}/actions/secrets/{name}
+    requires: [secrets.write]
+  - id: PUT /orgs/{org}/actions/secrets/{name}
+    requires: [secrets.write, org:read]
+  - id: GET /repos/{owner}/{repo}/environments
+    requires: [environments.read]
+  - id: PUT /repos/{owner}/{repo}/environments/{name}
+    requires: [environments.write]
+  - id: POST /repos/{owner}/{repo}/actions/runs/{id}/pending_deployments
+    description: Approve a deployment waiting on an environment reviewer
+    requires: [environments.approve, runs.read]
+
+  # ---- deployments, packages, releases ----
+  - id: GET /repos/{owner}/{repo}/deployments
+    requires: [deployments.read]
+  - id: POST /repos/{owner}/{repo}/deployments
+    requires: [deployments.write]
+  - id: POST /repos/{owner}/{repo}/deployments/{id}/statuses
+    requires: [deployments.write]
+  - id: POST /repos/{owner}/{repo}/environments/production/deployments
+    description: Ship to production; needs the environment as well as the deploy
+    requires: [deployments.promote, environments.read]
+  - id: GET /orgs/{org}/packages
+    requires: [packages.read]
+  - id: PUT /orgs/{org}/packages/{name}
+    requires: [packages.write]
+  - id: DELETE /orgs/{org}/packages/{name}/versions/{id}
+    requires: [packages.delete]
+  - id: GET /repos/{owner}/{repo}/releases
+    requires: [releases.read]
+  - id: POST /repos/{owner}/{repo}/releases
+    requires: [releases.write]
+  - id: DELETE /repos/{owner}/{repo}/releases/{id}
+    requires: [releases.delete]
+
+  # ---- security ----
+  - id: GET /repos/{owner}/{repo}/code-scanning/alerts
+    requires: [code-scanning.read]
+  - id: PATCH /repos/{owner}/{repo}/code-scanning/alerts/{number}
+    requires: [code-scanning.write]
+  - id: POST /repos/{owner}/{repo}/code-scanning/sarifs
+    requires: [code-scanning.write]
+  - id: GET /repos/{owner}/{repo}/secret-scanning/alerts
+    requires: [secret-scanning.read]
+  - id: PATCH /repos/{owner}/{repo}/secret-scanning/alerts/{number}
+    requires: [secret-scanning.dismiss]
+  - id: GET /repos/{owner}/{repo}/dependabot/alerts
+    requires: [dependabot.read]
+  - id: PATCH /repos/{owner}/{repo}/dependabot/alerts/{number}
+    requires: [dependabot.write]
+  - id: POST /repos/{owner}/{repo}/security-advisories
+    requires: [advisories.write]
+  - id: POST /orgs/{org}/code-security/configurations
+    description: Set the security configuration every repository inherits
+    requires: [configurations.write, org:read]
+
+  # ---- collaborators and members ----
   - id: GET /repos/{owner}/{repo}/collaborators
     requires: [collaborators.read]
   - id: PUT /repos/{owner}/{repo}/collaborators/{username}
     requires: [collaborators.write]
+  - id: GET /orgs/{org}/members
+    requires: [members.read]
+  - id: PUT /orgs/{org}/invitations
+    requires: [members.invite]
+  - id: DELETE /orgs/{org}/members/{username}
+    requires: [members.remove]
+  - id: GET /orgs/{org}/teams
+    requires: [teams.read]
+  - id: POST /orgs/{org}/teams
+    requires: [teams.write]
+  - id: PUT /orgs/{org}/teams/{slug}/memberships/{username}
+    requires: [teams.membership]
+  - id: PUT /orgs/{org}/blocks/{username}
+    requires: [blocks.write]
 
-  # users
+  # ---- users ----
   - id: GET /users/{username}
     requires: [users.read]
   - id: GET /user
@@ -57,16 +215,67 @@ endpoints:
   - id: PATCH /user
     requires: [users.write]
 
-  # organisations
+  # ---- organisation plumbing ----
   - id: GET /orgs/{org}
     requires: [orgs.read]
   - id: PATCH /orgs/{org}
     requires: [orgs.admin]
   - id: PUT /orgs/{org}/memberships/{username}
     requires: [orgs.admin]
+  - id: GET /orgs/{org}/settings/sso
+    requires: [sso.read]
+  - id: PUT /orgs/{org}/settings/sso
+    requires: [sso.write]
+  - id: POST /scim/v2/organizations/{org}/Users
+    requires: [sso.provision]
+  - id: GET /orgs/{org}/installations
+    requires: [apps.read]
+  - id: PUT /orgs/{org}/installations/{id}/repositories
+    requires: [apps.install]
+  - id: POST /orgs/{org}/hooks
+    requires: [webhooks.write]
+  - id: POST /orgs/{org}/migrations
+    requires: [migrations.write]
+  - id: GET /orgs/{org}/migrations/{id}/archive
+    requires: [migrations.read]
+  - id: GET /orgs/{org}/settings/billing/usage
+    requires: [billing.read]
+  - id: PUT /orgs/{org}/settings/billing/spending-limit
+    requires: [billing.write]
+  - id: GET /orgs/{org}/copilot/billing/seats
+    requires: [copilot.read]
+  - id: POST /orgs/{org}/copilot/billing/selected_users
+    requires: [copilot.write]
+  - id: GET /repos/{owner}/{repo}/codespaces
+    requires: [codespaces.read]
+  - id: POST /repos/{owner}/{repo}/codespaces
+    requires: [codespaces.write]
+  - id: DELETE /orgs/{org}/members/{username}/codespaces/{name}
+    requires: [codespaces.admin]
+  - id: GET /orgs/{org}/audit-log
+    requires: [audit.read]
+  - id: GET /repos/{owner}/{repo}/traffic/views
+    requires: [insights.read]
 
-  # unauthenticated
+  # ---- enterprise ----
+  - id: GET /enterprises/{enterprise}
+    requires: [enterprises.read]
+  - id: PATCH /enterprises/{enterprise}
+    requires: [enterprises.write]
+  - id: POST /enterprises/{enterprise}/organizations
+    description: Create an organisation inside the enterprise
+    requires: [enterprises.write, orgs.read]
+  - id: PUT /enterprises/{enterprise}/policies/actions
+    requires: [enterprises.policy]
+  - id: GET /enterprises/{enterprise}/settings/billing/usage
+    requires: [enterprises.billing]
+  - id: GET /enterprises/{enterprise}/audit-log
+    requires: [enterprises.audit]
+
+  # ---- unauthenticated ----
   - id: GET /zen
     public: true
   - id: GET /meta
+    public: true
+  - id: GET /versions
     public: true

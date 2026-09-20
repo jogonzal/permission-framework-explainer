@@ -100,7 +100,7 @@ describe('loadModel', () => {
 });
 
 describe('examples/github', () => {
-  it('validates and models GitHub roles', async () => {
+  it('validates and models the built-in repository roles', async () => {
     const model = await loadModel(examples('github'));
     expect(model.check(['role:write'], 'PUT /repos/{owner}/{repo}/pulls/{number}/merge').allowed).toBe(true);
     expect(model.check(['role:triage'], 'PUT /repos/{owner}/{repo}/pulls/{number}/merge').allowed).toBe(false);
@@ -108,8 +108,64 @@ describe('examples/github', () => {
     expect(transfer.allowed).toBe(false);
     expect(transfer.requirements.map((r) => r.satisfied)).toEqual([true, false]);
     expect(model.explain(['org:owner'], 'POST /repos/{owner}/{repo}/transfer').allowed).toBe(true);
-    // An org owner holds everything except the authenticated user's own profile permissions.
-    const notImplied = model.permissions().map((p) => p.id).filter((id) => !model.closure('org:owner').has(id));
-    expect(notImplied).toEqual(['users:read', 'users:write']);
+    // Repository roles never reach into the organisation, however senior they are.
+    expect(model.closure('role:admin').has('org:read')).toBe(false);
+    // An org owner holds every leaf permission except the authenticated user's
+    // own profile, and every role above it belongs to the enterprise.
+    const layered = (id: string): boolean =>
+      ['cap:', 'job:', 'role:', 'app:', 'token:', 'org:', 'enterprise:'].some((p) => id.startsWith(p));
+    const owner = model.closure('org:owner');
+    const leavesMissing = model
+      .permissions()
+      .map((p) => p.id)
+      .filter((id) => !layered(id) && !owner.has(id));
+    expect(leavesMissing).toEqual(['users:read', 'users:write']);
+    expect(owner.has('enterprise:policies')).toBe(false);
+    expect(model.closure('enterprise:owner').has('enterprise:policies')).toBe(true);
+  });
+
+  it('keeps the middle layers meaningful', async () => {
+    const model = await loadModel(examples('github'));
+    // Custom roles sit between the built-in ones: a contractor may push but not merge.
+    expect(model.check(['role:custom-contractor'], 'PUT /repos/{owner}/{repo}/contents/{path}').allowed).toBe(true);
+    expect(model.check(['role:custom-contractor'], 'PUT /repos/{owner}/{repo}/pulls/{number}/merge').unmet).toEqual([
+      'pulls:merge',
+    ]);
+    // Oncall is read-only on code but holds the CI and deployment levers.
+    expect(
+      model.check(['role:custom-oncall'], 'POST /repos/{owner}/{repo}/actions/runs/{id}/pending_deployments').allowed,
+    ).toBe(true);
+    expect(model.check(['role:custom-oncall'], 'PUT /repos/{owner}/{repo}/contents/{path}').allowed).toBe(false);
+    // Job functions cut across repository roles: only an SRE ships to production.
+    expect(model.check(['job:sre'], 'POST /repos/{owner}/{repo}/environments/production/deployments').allowed).toBe(true);
+    expect(
+      model.check(['job:release-manager'], 'POST /repos/{owner}/{repo}/environments/production/deployments').unmet,
+    ).toEqual(['deployments:promote', 'environments:read']);
+    // Machine identities are narrow: the default token cannot read secrets.
+    expect(model.check(['token:actions-default'], 'POST /repos/{owner}/{repo}/check-runs').allowed).toBe(true);
+    expect(model.check(['token:actions-default'], 'PUT /repos/{owner}/{repo}/actions/secrets/{name}').unmet).toEqual([
+      'secrets:write',
+    ]);
+    expect(model.check(['app:security-scanner'], 'POST /repos/{owner}/{repo}/code-scanning/sarifs').allowed).toBe(true);
+    expect(model.check(['app:security-scanner'], 'PUT /repos/{owner}/{repo}/contents/{path}').allowed).toBe(false);
+    // A billing manager is an organisation role that sees no code at all.
+    expect(model.check(['org:billing-manager'], 'PUT /orgs/{org}/settings/billing/spending-limit').allowed).toBe(true);
+    expect(model.check(['org:billing-manager'], 'GET /repos/{owner}/{repo}/contents/{path}').allowed).toBe(false);
+    // Bypassing a ruleset needs two leaves, and maintain reaches neither.
+    const bypass = model.explain(['role:maintain'], 'POST /repos/{owner}/{repo}/branches/{branch}/force-push');
+    expect(bypass.requirements.map((r) => [r.permission, r.satisfied])).toEqual([
+      ['branch:bypass', false],
+      ['contents:force-push', false],
+    ]);
+    expect(model.check(['role:admin'], 'POST /repos/{owner}/{repo}/branches/{branch}/force-push').allowed).toBe(true);
+    // The security manager's path to org-wide policy runs through three layers.
+    const policy = model.explain(['org:security-manager'], 'POST /orgs/{org}/code-security/configurations');
+    expect(policy.allowed).toBe(true);
+    expect(policy.requirements[0]?.path).toEqual([
+      'org:security-manager',
+      'job:security-engineer',
+      'cap:security-govern',
+      'security-policy:write',
+    ]);
   });
 });

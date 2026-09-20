@@ -82,7 +82,7 @@ Each directory under `examples/` models a real system and stresses a different p
 
 | Example | What it shows |
 |---|---|
-| [`github/`](examples/github) | Repository roles (`role:read` to `role:admin`, `org:owner`) as permissions that imply finer ones |
+| [`github/`](examples/github) | A grown-up graph: leaves, capability bundles, job functions, built-in and custom repository roles, app identities, org roles and an enterprise on top |
 | [`stripe/`](examples/stripe) | Restricted API keys as permission sets; refunds and payouts need two leaf permissions |
 | [`slack/`](examples/slack) | Guests hold a subset of member permissions that is not a strict prefix, so the DAG is not a chain |
 | [`healthcare/`](examples/healthcare) | Narrow clinical roles; prescribing needs three leaves; a `break-glass` emergency permission |

@@ -34,7 +34,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   {
     id: 'github',
     title: 'GitHub',
-    description: 'Repository roles from read to admin, plus organisation owner.',
+    description: 'Seven layers: leaves, capabilities, job functions, repository roles, apps, org roles, enterprise.',
     files: [githubPermissions, githubResources, githubEndpoints],
   },
   {

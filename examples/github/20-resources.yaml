@@ -1,9 +1,15 @@
+# Resources name the things the API acts on. Each action maps to the leaf
+# permission it needs, so an endpoint can say `packages.delete` and stay
+# correct when the permission behind that action is re-cut.
 resources:
+  # ---- the repository and its code ----
   - id: repos
     description: Repositories
     actions:
       read: repo:read
       write: repo:write
+      visibility: repo:visibility
+      archive: repo:archive
       delete: repo:delete
   - id: commits
     description: Commits, branches and tags in a repository
@@ -11,28 +17,214 @@ resources:
       read: contents:read
       push: contents:write
       force-push: contents:force-push
+  - id: branches
+    description: Branch protection rules and rulesets
+    actions:
+      read: branch:read
+      write: branch:write
+      bypass: branch:bypass
+  - id: workflows
+    description: Workflow definitions under .github/workflows
+    actions:
+      read: contents:read
+      write: workflows:write
+      manage: actions:manage
+
+  # ---- collaboration ----
   - id: issues
     actions:
       read: issues:read
       triage: issues:triage
       write: issues:write
+      delete: issues:delete
   - id: pulls
     description: Pull requests
     actions:
       read: pulls:read
       write: pulls:write
       review: pulls:review
+      dismiss: pulls:review-dismiss
       merge: pulls:merge
+  - id: discussions
+    actions:
+      read: discussions:read
+      write: discussions:write
+      moderate: discussions:moderate
+  - id: projects
+    description: Project boards
+    actions:
+      read: projects:read
+      write: projects:write
+      admin: projects:admin
+  - id: wikis
+    actions:
+      read: wiki:read
+      write: wiki:write
+  - id: pages
+    description: GitHub Pages sites
+    actions:
+      read: pages:read
+      write: pages:write
+
+  # ---- CI and delivery ----
+  - id: runs
+    description: Workflow runs and their jobs
+    actions:
+      read: actions:read
+      write: actions:write
+  - id: caches
+    description: Actions caches
+    actions:
+      read: actions:read
+      delete: actions:cache-delete
+  - id: checks
+    description: Check runs and check suites
+    actions:
+      read: checks:read
+      write: checks:write
+  - id: runners
+    description: Self-hosted runners and runner groups
+    actions:
+      read: runners:read
+      write: runners:write
+  - id: secrets
+    actions:
+      read: secrets:read
+      write: secrets:write
+  - id: variables
+    description: Configuration variables
+    actions:
+      read: variables:read
+      write: variables:write
+  - id: environments
+    description: Deployment environments and their protection rules
+    actions:
+      read: environments:read
+      write: environments:write
+      approve: environments:approve
+  - id: deployments
+    actions:
+      read: deployments:read
+      write: deployments:write
+      promote: deployments:promote
+  - id: packages
+    actions:
+      read: packages:read
+      write: packages:write
+      delete: packages:delete
+  - id: releases
+    actions:
+      read: releases:read
+      write: releases:write
+      delete: releases:delete
+
+  # ---- security ----
+  - id: code-scanning
+    description: Code scanning alerts and analyses
+    actions:
+      read: code-scanning:read
+      write: code-scanning:write
+  - id: secret-scanning
+    description: Secret scanning alerts
+    actions:
+      read: secret-scanning:read
+      dismiss: secret-scanning:dismiss
+  - id: dependabot
+    description: Dependabot alerts and the dependency graph
+    actions:
+      read: dependabot:read
+      write: dependabot:write
+  - id: advisories
+    description: Repository security advisories
+    actions:
+      read: advisories:read
+      write: advisories:write
+  - id: configurations
+    description: Organisation-wide security configurations
+    actions:
+      read: code-scanning:read
+      write: security-policy:write
+
+  # ---- people ----
   - id: collaborators
     actions:
       read: collaborators:read
       write: collaborators:write
+  - id: members
+    description: Organisation members
+    actions:
+      read: members:read
+      invite: members:invite
+      remove: members:remove
+  - id: teams
+    actions:
+      read: teams:read
+      membership: teams:membership
+      write: teams:write
+  - id: blocks
+    description: Blocked users and hidden content
+    actions:
+      write: moderation:write
   - id: users
     actions:
       read: users:read
       write: users:write
+
+  # ---- organisation plumbing ----
   - id: orgs
     description: Organisations
     actions:
       read: org:read
-      admin: org:admin
+      write: org:write
+      admin: org:write
+  - id: sso
+    description: SAML single sign-on and SCIM provisioning
+    actions:
+      read: sso:read
+      write: sso:write
+      provision: scim:write
+  - id: apps
+    description: GitHub App installations
+    actions:
+      read: apps:read
+      install: apps:install
+      write: apps:write
+  - id: webhooks
+    actions:
+      read: webhooks:read
+      write: webhooks:write
+  - id: migrations
+    actions:
+      read: migrations:read
+      write: migrations:write
+  - id: billing
+    actions:
+      read: billing:read
+      write: billing:write
+  - id: copilot
+    description: Copilot seats
+    actions:
+      read: copilot:read
+      write: copilot:write
+  - id: codespaces
+    actions:
+      read: codespaces:read
+      write: codespaces:write
+      admin: codespaces:admin
+  - id: audit
+    description: The audit log
+    actions:
+      read: audit-log:read
+  - id: insights
+    description: Traffic, dependency and usage insights
+    actions:
+      read: insights:read
+
+  # ---- enterprise ----
+  - id: enterprises
+    actions:
+      read: enterprise:read
+      write: enterprise:settings
+      policy: enterprise:policies
+      billing: enterprise:billing
+      audit: enterprise:audit
