@@ -37,3 +37,4 @@ export type { Provenance } from './validate.js';
 export { buildModel } from './model.js';
 export type { PermissionModel } from './model.js';
 export * as graph from './graph.js';
+export type { AllPathsResult, Graph, GraphEdge } from './graph.js';

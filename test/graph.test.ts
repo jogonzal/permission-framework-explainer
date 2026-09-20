@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { buildGraph, computeClosures, findCycle, findPath } from '../src/graph.js';
+import {
+  buildGraph,
+  computeClosures,
+  edgesOnPaths,
+  findAllPaths,
+  findCycle,
+  findPath,
+} from '../src/graph.js';
 import type { PermissionDef } from '../src/types.js';
 
 const perms = (spec: Record<string, string[]>): PermissionDef[] =>
@@ -80,5 +87,63 @@ describe('findPath', () => {
   it('returns null when unreachable or from is unknown', () => {
     expect(findPath(g, 'other', 'users:read')).toBeNull();
     expect(findPath(g, 'nope', 'users:read')).toBeNull();
+  });
+});
+
+describe('findAllPaths', () => {
+  it('returns [[from]] when from === to', () => {
+    const g = buildGraph(perms({ admin: ['users:read'], 'users:read': [] }));
+    expect(findAllPaths(g, 'admin', 'admin')).toEqual({ paths: [['admin']], truncated: false });
+  });
+
+  it('returns a single chain', () => {
+    const g = buildGraph(perms({ a: ['b'], b: ['c'], c: [] }));
+    expect(findAllPaths(g, 'a', 'c')).toEqual({ paths: [['a', 'b', 'c']], truncated: false });
+  });
+
+  it('enumerates both sides of a diamond', () => {
+    const g = buildGraph(perms({ a: ['b', 'c'], b: ['d'], c: ['d'], d: [] }));
+    expect(findAllPaths(g, 'a', 'd')).toEqual({
+      paths: [
+        ['a', 'b', 'd'],
+        ['a', 'c', 'd'],
+      ],
+      truncated: false,
+    });
+  });
+
+  it('returns an empty list when unreachable or a node is unknown', () => {
+    const g = buildGraph(perms({ admin: ['users:read'], 'users:read': [], other: [] }));
+    expect(findAllPaths(g, 'other', 'users:read')).toEqual({ paths: [], truncated: false });
+    expect(findAllPaths(g, 'nope', 'users:read')).toEqual({ paths: [], truncated: false });
+    expect(findAllPaths(g, 'admin', 'missing')).toEqual({ paths: [], truncated: false });
+  });
+
+  it('caps the result and sets truncated when more paths exist', () => {
+    const g = buildGraph(perms({ a: ['b', 'c', 'd'], b: ['e'], c: ['e'], d: ['e'], e: [] }));
+    expect(findAllPaths(g, 'a', 'e', 2)).toEqual({
+      paths: [
+        ['a', 'b', 'e'],
+        ['a', 'c', 'e'],
+      ],
+      truncated: true,
+    });
+  });
+});
+
+describe('edgesOnPaths', () => {
+  it('deduplicates hops and preserves first-seen order', () => {
+    expect(
+      edgesOnPaths([
+        ['a', 'b', 'd'],
+        ['a', 'c', 'd'],
+        ['a', 'b', 'd'],
+      ]),
+    ).toEqual([
+      { from: 'a', to: 'b' },
+      { from: 'b', to: 'd' },
+      { from: 'a', to: 'c' },
+      { from: 'c', to: 'd' },
+    ]);
   });
 });

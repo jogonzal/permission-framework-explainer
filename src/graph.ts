@@ -114,3 +114,74 @@ export function findPath(g: Graph, from: string, to: string): string[] | null {
   }
   return null;
 }
+
+export const DEFAULT_MAX_PATHS = 200;
+
+export type AllPathsResult = {
+  paths: string[][];
+  truncated: boolean;
+};
+
+export type GraphEdge = {
+  from: string;
+  to: string;
+};
+
+/**
+ * Every simple implication path from `from` to `to`, inclusive of both ends.
+ * Returns `[[from]]` when they are equal, or an empty list when `to` is unreachable.
+ * Caps the result so a dense DAG cannot explode; `truncated` is set when more
+ * paths exist beyond `maxPaths`.
+ */
+export function findAllPaths(
+  g: Graph,
+  from: string,
+  to: string,
+  maxPaths = DEFAULT_MAX_PATHS,
+): AllPathsResult {
+  if (!g.has(from) || !g.has(to) || maxPaths <= 0) {
+    return { paths: [], truncated: maxPaths <= 0 && g.has(from) && g.has(to) };
+  }
+
+  const paths: string[][] = [];
+  let truncated = false;
+  const trail = [from];
+
+  const visit = (node: string): void => {
+    if (paths.length >= maxPaths) {
+      truncated = true;
+      return;
+    }
+    if (node === to) {
+      paths.push([...trail]);
+      return;
+    }
+    for (const w of g.get(node) ?? []) {
+      if (trail.includes(w)) continue;
+      trail.push(w);
+      visit(w);
+      trail.pop();
+      if (truncated) return;
+    }
+  };
+
+  visit(from);
+  return { paths, truncated };
+}
+
+/** Unique directed hops across `paths`, in first-seen order. */
+export function edgesOnPaths(paths: readonly (readonly string[])[]): GraphEdge[] {
+  const seen = new Set<string>();
+  const edges: GraphEdge[] = [];
+  for (const path of paths) {
+    for (let i = 0; i < path.length - 1; i++) {
+      const from = path[i] as string;
+      const to = path[i + 1] as string;
+      const key = `${from}\0${to}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      edges.push({ from, to });
+    }
+  }
+  return edges;
+}

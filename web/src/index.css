@@ -557,6 +557,142 @@ tr:last-child td {
   border: 0;
 }
 
+.perm-node.compact {
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+  height: 100%;
+  padding: 0.3rem 0.5rem;
+}
+
+.debug-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.debug-row {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-panel);
+}
+
+.debug-row > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.debug-row > summary::-webkit-details-marker {
+  display: none;
+}
+
+.debug-row > summary::before {
+  content: '';
+  width: 0.4rem;
+  height: 0.4rem;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg);
+  flex-shrink: 0;
+}
+
+.debug-row[open] > summary::before {
+  transform: rotate(45deg);
+  margin-top: -0.2rem;
+}
+
+.debug-row-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.debug-row-meta {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.debug-row-body {
+  padding: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.debug-row-body h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.implication-paths {
+  margin: 0 0 0.9rem;
+  padding-left: 1.15rem;
+}
+
+.implication-paths li + li {
+  margin-top: 0.45rem;
+}
+
+.implication-path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.implication-path-hop {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.implication-path-arrow {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.implication-subgraph {
+  height: 320px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #07090c;
+}
+
+.debug-btn {
+  appearance: none;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-ink);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.debug-btn:hover {
+  color: var(--accent);
+}
+
+.yaml-panel {
+  margin-top: 0.65rem;
+}
+
+.yaml-panel .code-block {
+  margin: 0.75rem 0 0;
+}
+
 .react-flow__controls {
   box-shadow: none;
   border: 1px solid var(--line);

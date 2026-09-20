@@ -1,4 +1,3 @@
-import dagre from '@dagrejs/dagre';
 import {
   Background,
   Controls,
@@ -15,12 +14,10 @@ import {
 import { useCallback, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { graph } from 'permission-framework-explainer/core';
+import { layoutGraph } from '../graph-layout';
 import { useLoadedInstance } from '../instance';
 import { graphPath, permissionPath } from '../paths';
 import '@xyflow/react/dist/style.css';
-
-const NODE_WIDTH = 240;
-const NODE_HEIGHT = 72;
 
 type PermissionNodeData = {
   label: string;
@@ -53,32 +50,6 @@ function PermissionNode({ data }: NodeProps<PermNode>) {
 }
 
 const nodeTypes = { permission: PermissionNode };
-
-function layoutGraph(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: Edge[] } {
-  const g = new dagre.graphlib.Graph();
-  g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: 'TB', nodesep: 36, ranksep: 72, marginx: 24, marginy: 24 });
-
-  for (const node of nodes) {
-    g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
-  }
-  for (const edge of edges) {
-    g.setEdge(edge.source, edge.target);
-  }
-  dagre.layout(g);
-
-  return {
-    nodes: nodes.map((node) => {
-      const placed = g.node(node.id);
-      return {
-        ...node,
-        position: { x: placed.x - NODE_WIDTH / 2, y: placed.y - NODE_HEIGHT / 2 },
-        style: { width: NODE_WIDTH, height: NODE_HEIGHT },
-      };
-    }),
-    edges,
-  };
-}
 
 function GraphCanvas() {
   const { permissionId } = useParams();

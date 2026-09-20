@@ -36,4 +36,5 @@ export type { PermissionModel } from './model.js';
 export { LoadError, loadConfig, loadDocuments, loadModel, mergeDocuments } from './loader.js';
 export type { LoadOptions, LoadedConfig, LoadedDocument } from './loader.js';
 export * as graph from './graph.js';
+export type { AllPathsResult, Graph, GraphEdge } from './graph.js';
 export { main as cliMain, USAGE as CLI_USAGE } from './cli.js';

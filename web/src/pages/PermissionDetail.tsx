@@ -1,6 +1,9 @@
+import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { graph } from 'permission-framework-explainer/core';
 import { ChipList } from '../components/ChipList';
 import { IdLink } from '../components/IdLink';
+import { ImplicationDebugList } from '../components/ImplicationDebugList';
 import { useLoadedInstance } from '../instance';
 import { endpointPath, graphPath, permissionPath, resourcePath } from '../paths';
 
@@ -8,6 +11,12 @@ export function PermissionDetail() {
   const { permissionId = '' } = useParams();
   const { meta, model, indexes } = useLoadedInstance();
   const permission = model.permissions().find((item) => item.id === permissionId);
+
+  const adj = useMemo(() => graph.buildGraph(model.permissions()), [model]);
+  const descriptions = useMemo(
+    () => new Map(model.permissions().map((item) => [item.id, item.description])),
+    [model],
+  );
 
   if (!permission) {
     return (
@@ -24,7 +33,16 @@ export function PermissionDetail() {
   }
 
   const impliedBy = indexes.impliedBy.get(permission.id) ?? [];
-  const closure = [...model.closure(permission.id)].filter((id) => id !== permission.id);
+  const implied = [...model.closure(permission.id)]
+    .filter((id) => id !== permission.id)
+    .sort()
+    .map((id) => ({ from: permission.id, to: id, label: id }));
+  const ancestors = model
+    .permissions()
+    .map((item) => item.id)
+    .filter((id) => id !== permission.id && model.closure(id).has(permission.id))
+    .sort()
+    .map((id) => ({ from: id, to: permission.id, label: id }));
   const actions = indexes.resourceActionsByPermission.get(permission.id) ?? [];
   const endpoints = indexes.endpointsByPermission.get(permission.id) ?? [];
 
@@ -42,19 +60,46 @@ export function PermissionDetail() {
       </header>
 
       <section className="section">
-        <h2>Implies</h2>
+        <h2>Directly implies</h2>
         <ChipList items={permission.implies} to={(id) => permissionPath(meta.id, id)} empty="This permission implies nothing else." />
       </section>
 
       <section className="section">
-        <h2>Implied by</h2>
+        <h2>Directly implied by</h2>
         <ChipList items={impliedBy} to={(id) => permissionPath(meta.id, id)} empty="No other permission implies this one." />
       </section>
 
       <section className="section">
-        <h2>Transitive closure</h2>
-        <p className="muted">Holding {permission.id} also grants these permissions.</p>
-        <ChipList items={closure} to={(id) => permissionPath(meta.id, id)} empty="Only itself." />
+        <h2>Implies</h2>
+        <p className="muted">
+          Holding <code>{permission.id}</code> grants these permissions directly or transitively —
+          including ones reached only through other <code>implies</code> edges. Expand one to see
+          every implication path.
+        </p>
+        <ImplicationDebugList
+          instanceId={meta.id}
+          adj={adj}
+          pairs={implied}
+          empty="Only itself."
+          yamlButtonLabel="Show changes required to remove this implied permission"
+          descriptions={descriptions}
+        />
+      </section>
+
+      <section className="section">
+        <h2>Implied by</h2>
+        <p className="muted">
+          These permissions grant <code>{permission.id}</code> directly or transitively. Expand one to
+          see every implication path.
+        </p>
+        <ImplicationDebugList
+          instanceId={meta.id}
+          adj={adj}
+          pairs={ancestors}
+          empty="No other permission implies this one."
+          yamlButtonLabel="Show changes required to remove this permission"
+          descriptions={descriptions}
+        />
       </section>
 
       <section className="section">
