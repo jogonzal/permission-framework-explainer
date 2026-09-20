@@ -185,6 +185,24 @@ code,
   font-size: 1.8rem;
 }
 
+.page-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.7rem;
+}
+
+.page-heading .page-title {
+  margin: 0;
+}
+
+.page-option {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
 .lede,
 .muted {
   color: var(--muted);

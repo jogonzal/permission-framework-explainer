@@ -11,7 +11,12 @@ export function InstanceOverview() {
   return (
     <article>
       <header className="detail-head">
-        <h1 className="page-title">{meta.title}</h1>
+        <div className="page-heading">
+          <h1 className="page-title">{meta.title}</h1>
+          <Link className="page-option" to={sourcePath(meta.id)}>
+            View YAML
+          </Link>
+        </div>
         <p className="lede">{meta.description}</p>
       </header>
       <div className="card-grid">
@@ -42,15 +47,6 @@ export function InstanceOverview() {
           <p>Interactive view of every implies edge.</p>
           <div className="counts">
             <span>{permissions} nodes</span>
-          </div>
-        </Link>
-        <Link className="card" to={sourcePath(meta.id)}>
-          <h2>View YAML</h2>
-          <p>The config files that define this model.</p>
-          <div className="counts">
-            <span>
-              {meta.files.length} {meta.files.length === 1 ? 'file' : 'files'}
-            </span>
           </div>
         </Link>
       </div>
