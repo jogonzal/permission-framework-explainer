@@ -81,7 +81,6 @@ export function PermissionDetail() {
           adj={adj}
           pairs={implied}
           empty="Only itself."
-          yamlButtonLabel="Show changes required to remove this implied permission"
           descriptions={descriptions}
         />
       </section>
@@ -97,7 +96,6 @@ export function PermissionDetail() {
           adj={adj}
           pairs={ancestors}
           empty="No other permission implies this one."
-          yamlButtonLabel="Show changes required to remove this permission"
           descriptions={descriptions}
         />
       </section>

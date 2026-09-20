@@ -8,7 +8,7 @@ import {
   type ResourceDef,
 } from 'permission-framework-explainer/core';
 import { parse } from 'yaml';
-import { CATALOG_BY_ID, type CatalogEntry } from './catalog';
+import { CATALOG_BY_ID, type CatalogEntry, type CatalogFile } from './catalog';
 
 export interface ResourceActionRef {
   resource: string;
@@ -30,12 +30,12 @@ export interface LoadedInstance {
 
 const cache = new Map<string, LoadedInstance>();
 
-function mergeYamlFiles(files: readonly string[]) {
+function mergeYamlFiles(files: readonly CatalogFile[]) {
   const permissions: unknown[] = [];
   const resources: unknown[] = [];
   const endpoints: unknown[] = [];
-  for (const text of files) {
-    const data = parse(text) as Record<string, unknown> | null;
+  for (const file of files) {
+    const data = parse(file.text) as Record<string, unknown> | null;
     if (!data || typeof data !== 'object') continue;
     if (Array.isArray(data.permissions)) permissions.push(...data.permissions);
     if (Array.isArray(data.resources)) resources.push(...data.resources);

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { graph, type Graph } from 'permission-framework-explainer/core';
+import { diffImpliesRemovals, graph, type Graph } from 'permission-framework-explainer/core';
+import { useLoadedInstance } from '../instance';
 import { permissionPath } from '../paths';
-import { CodeBlock } from './CodeBlock';
+import { DiffBlock } from './DiffBlock';
 import { IdLink } from './IdLink';
 import { ImplicationSubgraph } from './ImplicationSubgraph';
 
@@ -16,25 +17,8 @@ type ImplicationDebugListProps = {
   adj: Graph;
   pairs: readonly ImplicationPair[];
   empty: string;
-  yamlButtonLabel: string;
   descriptions: ReadonlyMap<string, string | undefined>;
 };
-
-function yamlForPaths(paths: readonly (readonly string[])[]): string {
-  const grouped = new Map<string, string[]>();
-  for (const edge of graph.edgesOnPaths(paths)) {
-    const targets = grouped.get(edge.from) ?? [];
-    if (!targets.includes(edge.to)) targets.push(edge.to);
-    grouped.set(edge.from, targets);
-  }
-
-  return [...grouped.entries()]
-    .map(([id, targets]) => {
-      const items = targets.map((target) => `  - ${target}`).join('\n');
-      return `# ${id}\nimplies:\n${items}`;
-    })
-    .join('\n\n');
-}
 
 function pathCountLabel(count: number, truncated: boolean): string {
   if (truncated) return `${count}+ paths`;
@@ -45,18 +29,21 @@ function ImplicationDebugRow({
   instanceId,
   adj,
   pair,
-  yamlButtonLabel,
   descriptions,
 }: {
   instanceId: string;
   adj: Graph;
   pair: ImplicationPair;
-  yamlButtonLabel: string;
   descriptions: ReadonlyMap<string, string | undefined>;
 }) {
+  const { meta } = useLoadedInstance();
   const [open, setOpen] = useState(false);
-  const [showYaml, setShowYaml] = useState(false);
+  const [showSourceDiff, setShowSourceDiff] = useState(false);
   const result = useMemo(() => graph.findAllPaths(adj, pair.from, pair.to), [adj, pair.from, pair.to]);
+  const sourceDiffs = useMemo(
+    () => diffImpliesRemovals(meta.files, graph.edgesOnPaths(result.paths)),
+    [meta.files, result.paths],
+  );
 
   return (
     <details
@@ -103,19 +90,27 @@ function ImplicationDebugRow({
                 paths={result.paths}
                 descriptions={descriptions}
               />
-              <p>
-                <button type="button" className="debug-btn" onClick={() => setShowYaml((value) => !value)}>
-                  {showYaml ? 'Hide YAML changes' : yamlButtonLabel}
+              <p className="debug-actions">
+                <button type="button" className="debug-btn" onClick={() => setShowSourceDiff((value) => !value)}>
+                  {showSourceDiff ? 'Hide YAML changes' : 'Show changes required to remove this permission'}
                 </button>
               </p>
-              {showYaml ? (
+              {showSourceDiff ? (
                 <div className="yaml-panel">
                   <p className="muted">
-                    These are all <code>implies</code> edges that participate in this implication. Removing
-                    all of them disconnects <code>{pair.from}</code> from <code>{pair.to}</code>; breaking
-                    every path (at least one edge per path) is enough.
+                    Unified diff against the model&apos;s existing YAML. Removed lines are{' '}
+                    <code>implies</code> entries that participate in this implication; added lines are the
+                    same list with those targets taken out.
                   </p>
-                  <CodeBlock>{yamlForPaths(result.paths)}</CodeBlock>
+                  {sourceDiffs.length === 0 ? (
+                    <p className="muted">No source YAML changes were found for these edges.</p>
+                  ) : (
+                    sourceDiffs.map((hunk) => (
+                      <DiffBlock key={hunk.name} filename={hunk.name}>
+                        {hunk.diff}
+                      </DiffBlock>
+                    ))
+                  )}
                 </div>
               ) : null}
             </>
@@ -131,7 +126,6 @@ export function ImplicationDebugList({
   adj,
   pairs,
   empty,
-  yamlButtonLabel,
   descriptions,
 }: ImplicationDebugListProps) {
   if (pairs.length === 0) return <p className="muted">{empty}</p>;
@@ -144,7 +138,6 @@ export function ImplicationDebugList({
           instanceId={instanceId}
           adj={adj}
           pair={pair}
-          yamlButtonLabel={yamlButtonLabel}
           descriptions={descriptions}
         />
       ))}

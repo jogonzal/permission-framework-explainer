@@ -17,11 +17,16 @@ import stripePermissions from '../../examples/stripe/10-permissions.yaml?raw';
 import stripeResources from '../../examples/stripe/20-resources.yaml?raw';
 import stripeEndpoints from '../../examples/stripe/30-endpoints.yaml?raw';
 
+export interface CatalogFile {
+  name: string;
+  text: string;
+}
+
 export interface CatalogEntry {
   id: string;
   title: string;
   description: string;
-  files: readonly string[];
+  files: readonly CatalogFile[];
 }
 
 export const CATALOG: readonly CatalogEntry[] = [
@@ -29,37 +34,57 @@ export const CATALOG: readonly CatalogEntry[] = [
     id: 'basic',
     title: 'Basic',
     description: 'A minimal users, billing, and admin DAG.',
-    files: [BASIC_YAML],
+    files: [{ name: 'examples/basic.yaml', text: BASIC_YAML }],
   },
   {
     id: 'github',
     title: 'GitHub',
     description: 'Seven layers: leaves, capabilities, job functions, repository roles, apps, org roles, enterprise.',
-    files: [githubPermissions, githubResources, githubEndpoints],
+    files: [
+      { name: 'examples/github/10-permissions.yaml', text: githubPermissions },
+      { name: 'examples/github/20-resources.yaml', text: githubResources },
+      { name: 'examples/github/30-endpoints.yaml', text: githubEndpoints },
+    ],
   },
   {
     id: 'stripe',
     title: 'Stripe',
     description: 'Restricted API keys as permission sets; refunds and payouts need multiple leaves.',
-    files: [stripePermissions, stripeResources, stripeEndpoints],
+    files: [
+      { name: 'examples/stripe/10-permissions.yaml', text: stripePermissions },
+      { name: 'examples/stripe/20-resources.yaml', text: stripeResources },
+      { name: 'examples/stripe/30-endpoints.yaml', text: stripeEndpoints },
+    ],
   },
   {
     id: 'slack',
     title: 'Slack',
     description: 'Guest permissions are a non-prefix subset of member, so the DAG is not a chain.',
-    files: [slackPermissions, slackResources, slackEndpoints],
+    files: [
+      { name: 'examples/slack/10-permissions.yaml', text: slackPermissions },
+      { name: 'examples/slack/20-resources.yaml', text: slackResources },
+      { name: 'examples/slack/30-endpoints.yaml', text: slackEndpoints },
+    ],
   },
   {
     id: 'healthcare',
     title: 'Healthcare',
     description: 'Narrow FHIR-style clinical roles, with a break-glass emergency permission.',
-    files: [healthcarePermissions, healthcareResources, healthcareEndpoints],
+    files: [
+      { name: 'examples/healthcare/10-permissions.yaml', text: healthcarePermissions },
+      { name: 'examples/healthcare/20-resources.yaml', text: healthcareResources },
+      { name: 'examples/healthcare/30-endpoints.yaml', text: healthcareEndpoints },
+    ],
   },
   {
     id: 'multiplayer',
     title: 'Multiplayer',
     description: 'Moderation and economy as sibling branches that only the developer role unifies.',
-    files: [multiplayerPermissions, multiplayerResources, multiplayerEndpoints],
+    files: [
+      { name: 'examples/multiplayer/10-permissions.yaml', text: multiplayerPermissions },
+      { name: 'examples/multiplayer/20-resources.yaml', text: multiplayerResources },
+      { name: 'examples/multiplayer/30-endpoints.yaml', text: multiplayerEndpoints },
+    ],
   },
 ];
 

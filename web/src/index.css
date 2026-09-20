@@ -668,9 +668,17 @@ tr:last-child td {
   background: #07090c;
 }
 
+.debug-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0.85rem 0 0;
+}
+
 .debug-btn {
   appearance: none;
-  margin: 0.85rem 0 0;
+  margin: 0;
   padding: 0;
   border: 0;
   background: none;
@@ -691,6 +699,35 @@ tr:last-child td {
 
 .yaml-panel .code-block {
   margin: 0.75rem 0 0;
+}
+
+.diff-block pre {
+  padding: 0.55rem 0;
+}
+
+.diff-line {
+  display: block;
+  padding: 0 1.05rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.diff-line-file {
+  color: var(--muted);
+}
+
+.diff-line-hunk {
+  color: #8cb4e8;
+}
+
+.diff-line-add {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+
+.diff-line-del {
+  color: #f0a0a8;
+  background: #3a171b;
 }
 
 .react-flow__controls {

@@ -38,3 +38,5 @@ export { buildModel } from './model.js';
 export type { PermissionModel } from './model.js';
 export * as graph from './graph.js';
 export type { AllPathsResult, Graph, GraphEdge } from './graph.js';
+export { applyImpliesRemovals, diffImpliesRemovals, unifiedDiff } from './yaml-implies-diff.js';
+export type { ImpliesEdge, YamlDiffHunk, YamlSource } from './yaml-implies-diff.js';
