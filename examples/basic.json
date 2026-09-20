@@ -1,0 +1,17 @@
+{
+  "permissions": [
+    { "id": "users:read", "description": "Read user records" },
+    { "id": "users:write", "description": "Create, update and delete user records", "implies": ["users:read"] },
+    { "id": "billing:write", "description": "Issue invoices and refunds" },
+    { "id": "admin", "description": "Everything", "implies": ["users:write", "billing:write"] }
+  ],
+  "resources": [
+    { "id": "users", "description": "User accounts", "actions": { "read": "users:read", "write": "users:write" } }
+  ],
+  "endpoints": [
+    { "id": "GET /users/{id}", "requires": ["users:read"] },
+    { "id": "DELETE /users/{id}", "requires": ["users.write"] },
+    { "id": "POST /users/{id}/invoices", "requires": ["users:read", "billing:write"] },
+    { "id": "GET /health", "public": true }
+  ]
+}

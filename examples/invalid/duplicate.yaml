@@ -1,0 +1,6 @@
+permissions:
+  - id: users:read
+  - id: users:read                # E_DUPLICATE_ID
+endpoints:
+  - id: GET /users/{id}
+    requires: [users:read]

@@ -1,0 +1,1 @@
+{ "resources": [{ "id": "users", "actions": { "read": "users:read", "write": "users:write" } }] }

@@ -1,0 +1,3 @@
+endpoints:
+  - id: GET /users/{id}
+    requires: [users.read]

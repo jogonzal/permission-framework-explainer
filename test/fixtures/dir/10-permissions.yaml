@@ -1,0 +1,4 @@
+permissions:
+  - id: users:read
+  - id: users:write
+    implies: [users:read]

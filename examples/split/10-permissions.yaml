@@ -1,0 +1,11 @@
+permissions:
+  - id: users:read
+    description: Read user records
+  - id: users:write
+    description: Create, update and delete user records
+    implies: [users:read]
+  - id: billing:write
+    description: Issue invoices and refunds
+  - id: admin
+    description: Everything
+    implies: [users:write, billing:write]

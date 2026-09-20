@@ -1,0 +1,79 @@
+# A GitHub-like permission DAG. Roles (admin, maintain, write, triage, read)
+# are ordinary permissions that imply finer-grained ones, so a check against
+# any endpoint can be explained down to the leaf permission it needs.
+permissions:
+  # ---- leaf permissions: repositories ----
+  - id: repo:read
+    description: Read repository metadata and clone
+  - id: repo:write
+    description: Change repository settings
+    implies: [repo:read]
+  - id: repo:delete
+    description: Delete or transfer a repository
+    implies: [repo:write]
+
+  # ---- leaf permissions: code ----
+  - id: contents:read
+    description: Read files, commits, branches and tags
+  - id: contents:write
+    description: Push commits, create branches and tags
+    implies: [contents:read]
+  - id: contents:force-push
+    description: Rewrite history on any branch
+    implies: [contents:write]
+
+  # ---- issues and pull requests ----
+  - id: issues:read
+  - id: issues:triage
+    description: Label, assign and close issues
+    implies: [issues:read]
+  - id: issues:write
+    description: Create and edit issues and comments
+    implies: [issues:triage]
+  - id: pulls:read
+  - id: pulls:write
+    description: Open and edit pull requests
+    implies: [pulls:read]
+  - id: pulls:review
+    description: Approve or request changes on pull requests
+    implies: [pulls:read]
+  - id: pulls:merge
+    description: Merge pull requests
+    implies: [pulls:write, contents:write]
+
+  # ---- collaborators, users and organisation ----
+  - id: collaborators:read
+  - id: collaborators:write
+    description: Invite and remove collaborators, change their roles
+    implies: [collaborators:read]
+  - id: users:read
+    description: Read user profiles
+  - id: users:write
+    description: Edit the authenticated user's profile
+    implies: [users:read]
+  - id: org:read
+  - id: org:admin
+    description: Manage organisation settings and members
+    implies: [org:read, collaborators:write]
+
+  # ---- repository roles, as GitHub defines them ----
+  - id: role:read
+    description: Read role
+    implies: [repo:read, contents:read, issues:read, pulls:read, collaborators:read]
+  - id: role:triage
+    description: Triage role
+    implies: [role:read, issues:triage]
+  - id: role:write
+    description: Write role
+    implies: [role:triage, contents:write, issues:write, pulls:write, pulls:review, pulls:merge]
+  - id: role:maintain
+    description: Maintain role
+    implies: [role:write, repo:write]
+  - id: role:admin
+    description: Admin role
+    implies: [role:maintain, repo:delete, contents:force-push, collaborators:write]
+
+  # ---- organisation owner ----
+  - id: org:owner
+    description: Organisation owner
+    implies: [role:admin, org:admin]

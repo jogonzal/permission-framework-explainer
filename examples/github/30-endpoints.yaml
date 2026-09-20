@@ -1,0 +1,72 @@
+# A subset of the GitHub REST API. Endpoints usually point at a resource action
+# so their requirement moves with the resource; a few name permissions directly.
+endpoints:
+  # repositories
+  - id: GET /repos/{owner}/{repo}
+    requires: [repos.read]
+  - id: PATCH /repos/{owner}/{repo}
+    requires: [repos.write]
+  - id: DELETE /repos/{owner}/{repo}
+    requires: [repos.delete]
+  - id: POST /repos/{owner}/{repo}/transfer
+    requires: [repos.delete, org:read]
+
+  # commits, branches, contents
+  - id: GET /repos/{owner}/{repo}/commits
+    requires: [commits.read]
+  - id: GET /repos/{owner}/{repo}/commits/{ref}
+    requires: [commits.read]
+  - id: GET /repos/{owner}/{repo}/contents/{path}
+    requires: [commits.read]
+  - id: PUT /repos/{owner}/{repo}/contents/{path}
+    requires: [commits.push]
+  - id: DELETE /repos/{owner}/{repo}/git/refs/{ref}
+    requires: [commits.force-push]
+
+  # issues
+  - id: GET /repos/{owner}/{repo}/issues
+    requires: [issues.read]
+  - id: POST /repos/{owner}/{repo}/issues
+    requires: [issues.write]
+  - id: PATCH /repos/{owner}/{repo}/issues/{number}
+    requires: [issues.write]
+  - id: POST /repos/{owner}/{repo}/issues/{number}/labels
+    requires: [issues.triage]
+
+  # pull requests
+  - id: GET /repos/{owner}/{repo}/pulls
+    requires: [pulls.read]
+  - id: POST /repos/{owner}/{repo}/pulls
+    requires: [pulls.write]
+  - id: POST /repos/{owner}/{repo}/pulls/{number}/reviews
+    requires: [pulls.review]
+  - id: PUT /repos/{owner}/{repo}/pulls/{number}/merge
+    requires: [pulls.merge]
+
+  # collaborators
+  - id: GET /repos/{owner}/{repo}/collaborators
+    requires: [collaborators.read]
+  - id: PUT /repos/{owner}/{repo}/collaborators/{username}
+    requires: [collaborators.write]
+
+  # users
+  - id: GET /users/{username}
+    requires: [users.read]
+  - id: GET /user
+    requires: [users.read]
+  - id: PATCH /user
+    requires: [users.write]
+
+  # organisations
+  - id: GET /orgs/{org}
+    requires: [orgs.read]
+  - id: PATCH /orgs/{org}
+    requires: [orgs.admin]
+  - id: PUT /orgs/{org}/memberships/{username}
+    requires: [orgs.admin]
+
+  # unauthenticated
+  - id: GET /zen
+    public: true
+  - id: GET /meta
+    public: true

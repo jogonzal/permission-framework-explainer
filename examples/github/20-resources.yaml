@@ -1,0 +1,38 @@
+resources:
+  - id: repos
+    description: Repositories
+    actions:
+      read: repo:read
+      write: repo:write
+      delete: repo:delete
+  - id: commits
+    description: Commits, branches and tags in a repository
+    actions:
+      read: contents:read
+      push: contents:write
+      force-push: contents:force-push
+  - id: issues
+    actions:
+      read: issues:read
+      triage: issues:triage
+      write: issues:write
+  - id: pulls
+    description: Pull requests
+    actions:
+      read: pulls:read
+      write: pulls:write
+      review: pulls:review
+      merge: pulls:merge
+  - id: collaborators
+    actions:
+      read: collaborators:read
+      write: collaborators:write
+  - id: users
+    actions:
+      read: users:read
+      write: users:write
+  - id: orgs
+    description: Organisations
+    actions:
+      read: org:read
+      admin: org:admin

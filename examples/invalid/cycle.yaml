@@ -1,0 +1,10 @@
+# admin -> users:write -> admin is a cycle; permctl validate reports E_CYCLE with the path.
+permissions:
+  - id: users:read
+  - id: users:write
+    implies: [users:read, admin]
+  - id: admin
+    implies: [users:write]
+endpoints:
+  - id: GET /users/{id}
+    requires: [users:read]

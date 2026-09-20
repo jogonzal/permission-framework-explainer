@@ -1,0 +1,6 @@
+resources:
+  - id: users
+    description: User accounts
+    actions:
+      read: users:read
+      write: users:write

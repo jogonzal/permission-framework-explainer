@@ -1,0 +1,9 @@
+endpoints:
+  - id: GET /users/{id}
+    requires: [users:read]
+  - id: DELETE /users/{id}
+    requires: [users.write]
+  - id: POST /users/{id}/invoices
+    requires: [users:read, billing:write]
+  - id: GET /health
+    public: true

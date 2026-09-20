@@ -1,0 +1,15 @@
+# Several dangling references, all reported in one run.
+permissions:
+  - id: users:read
+  - id: users:write
+    implies: [users:red]          # typo -> E_UNKNOWN_PERMISSION with a suggestion
+resources:
+  - id: users
+    actions:
+      read: users:read
+endpoints:
+  - id: GET /users/{id}
+    requires: [user.read]         # E_UNKNOWN_RESOURCE
+  - id: DELETE /users/{id}
+    requires: [users.delete]      # E_UNKNOWN_ACTION
+  - id: GET /health               # E_EMPTY_REQUIRES (forgot public: true)
