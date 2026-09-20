@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: permission-explainer
+    runtime: static
+    buildCommand: npm ci && npm run build && npm ci --prefix web && npm run build --prefix web
+    staticPublishPath: web/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
