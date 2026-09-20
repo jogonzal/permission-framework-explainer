@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLoadedInstance } from '../instance';
+import { sourcePath } from '../paths';
 
 export function InstanceOverview() {
   const { meta, model } = useLoadedInstance();
@@ -41,6 +42,15 @@ export function InstanceOverview() {
           <p>Interactive view of every implies edge.</p>
           <div className="counts">
             <span>{permissions} nodes</span>
+          </div>
+        </Link>
+        <Link className="card" to={sourcePath(meta.id)}>
+          <h2>View YAML</h2>
+          <p>The config files that define this model.</p>
+          <div className="counts">
+            <span>
+              {meta.files.length} {meta.files.length === 1 ? 'file' : 'files'}
+            </span>
           </div>
         </Link>
       </div>

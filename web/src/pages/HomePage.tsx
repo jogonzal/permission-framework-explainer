@@ -3,6 +3,7 @@ import { CodeBlock } from '../components/CodeBlock';
 import { SiteHeader } from '../components/SiteHeader';
 import { BASIC_YAML, CATALOG } from '../catalog';
 import { loadInstance } from '../model';
+import { sourcePath } from '../paths';
 
 const RUNTIME_TS = `import { loadModel } from 'permission-framework-explainer';
 
@@ -57,7 +58,7 @@ export function HomePage() {
             <h2>Explore an instance</h2>
             <p className="lede">
               Each example is a complete model. Open one to browse every permission, resource, and endpoint,
-              or view the implication DAG.
+              view the implication DAG, or read the YAML.
             </p>
           </header>
           <div className="card-grid">
@@ -66,16 +67,21 @@ export function HomePage() {
               if (!loaded) return null;
               const { model } = loaded;
               return (
-                <Link key={entry.id} className="card" to={`/${entry.id}`}>
-                  <p className="card-kicker">{entry.id}</p>
-                  <h2>{entry.title}</h2>
-                  <p>{entry.description}</p>
-                  <div className="counts">
-                    <span>{model.permissions().length} permissions</span>
-                    <span>{model.resources().length} resources</span>
-                    <span>{model.endpoints().length} endpoints</span>
-                  </div>
-                </Link>
+                <article key={entry.id} className="card">
+                  <Link className="card-main" to={`/${entry.id}`}>
+                    <p className="card-kicker">{entry.id}</p>
+                    <h2>{entry.title}</h2>
+                    <p>{entry.description}</p>
+                    <div className="counts">
+                      <span>{model.permissions().length} permissions</span>
+                      <span>{model.resources().length} resources</span>
+                      <span>{model.endpoints().length} endpoints</span>
+                    </div>
+                  </Link>
+                  <Link className="card-yaml" to={sourcePath(entry.id)}>
+                    View YAML
+                  </Link>
+                </article>
               );
             })}
           </div>

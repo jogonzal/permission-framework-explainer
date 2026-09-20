@@ -2,7 +2,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'reac
 import { SiteHeader } from '../components/SiteHeader';
 import { CATALOG, CATALOG_BY_ID } from '../catalog';
 import { loadInstance } from '../model';
-import { switchInstancePath } from '../paths';
+import { sourcePath, switchInstancePath } from '../paths';
 
 function tabClass({ isActive }: { isActive: boolean }): string {
   return isActive ? 'active' : '';
@@ -63,6 +63,9 @@ export function AppLayout() {
           </NavLink>
           <NavLink to={`/${instance}/graph`} className={tabClass}>
             Graph
+          </NavLink>
+          <NavLink to={sourcePath(instance)} className={tabClass}>
+            YAML
           </NavLink>
         </nav>
       </SiteHeader>

@@ -8,16 +8,14 @@ export function SourceList() {
   return (
     <article>
       <header className="detail-head">
-        <h1 className="page-title">Source</h1>
-        <p className="lede">YAML files that define {meta.title}.</p>
+        <h1 className="page-title">YAML</h1>
+        <p className="lede">The YAML that defines {meta.title}.</p>
       </header>
-      <ul className="link-list">
-        {meta.files.map((file) => (
-          <li key={file.name}>
-            <Link to={sourcePath(meta.id, file.name)}>{file.name}</Link>
-          </li>
-        ))}
-      </ul>
+      {meta.files.map((file) => (
+        <CodeBlock key={file.name} filename={file.name}>
+          {file.text}
+        </CodeBlock>
+      ))}
     </article>
   );
 }
@@ -36,7 +34,7 @@ export function SourceFile() {
           <code>{filename || '(empty)'}</code> is not part of {meta.title}.
         </p>
         <p>
-          <Link to={sourcePath(meta.id)}>Back to source</Link>
+          <Link to={sourcePath(meta.id)}>Back to YAML</Link>
         </p>
       </article>
     );
@@ -46,7 +44,7 @@ export function SourceFile() {
     <article>
       <header className="detail-head">
         <p className="crumb">
-          <Link to={sourcePath(meta.id)}>Source</Link>
+          <Link to={sourcePath(meta.id)}>YAML</Link>
         </p>
         <h1>{file.name}</h1>
         <p className="lede">YAML source for {meta.title}.</p>
