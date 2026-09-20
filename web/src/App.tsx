@@ -9,6 +9,7 @@ import { PermissionDetail } from './pages/PermissionDetail';
 import { PermissionList } from './pages/PermissionList';
 import { ResourceDetail } from './pages/ResourceDetail';
 import { ResourceList } from './pages/ResourceList';
+import { SourceFile, SourceList } from './pages/SourcePage';
 
 const GraphPage = lazy(async () => {
   const mod = await import('./pages/GraphPage');
@@ -37,6 +38,8 @@ export function App() {
         <Route path="resources/:resourceId" element={<ResourceDetail />} />
         <Route path="graph" element={<GraphRoute />} />
         <Route path="graph/:permissionId" element={<GraphRoute />} />
+        <Route path="source" element={<SourceList />} />
+        <Route path="source/*" element={<SourceFile />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

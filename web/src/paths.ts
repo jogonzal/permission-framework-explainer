@@ -14,6 +14,11 @@ export function graphPath(instance: string, id?: string): string {
   return id ? `/${instance}/graph/${encodeURIComponent(id)}` : `/${instance}/graph`;
 }
 
+export function sourcePath(instance: string, filename?: string): string {
+  if (!filename) return `/${instance}/source`;
+  return `/${instance}/source/${filename.split('/').map(encodeURIComponent).join('/')}`;
+}
+
 export function instancePath(instance: string, rest = ''): string {
   return rest ? `/${instance}/${rest}` : `/${instance}`;
 }

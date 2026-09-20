@@ -293,6 +293,16 @@ code,
   background: var(--bg-panel);
 }
 
+.code-block figcaption a {
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.code-block figcaption a:hover {
+  color: var(--accent);
+}
+
 .code-block pre {
   margin: 0;
   padding: 1rem 1.05rem;
@@ -714,6 +724,10 @@ tr:last-child td {
 
 .diff-line-file {
   color: var(--muted);
+}
+
+.diff-line-file a {
+  color: var(--accent-ink);
 }
 
 .diff-line-hunk {

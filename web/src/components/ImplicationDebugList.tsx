@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { diffImpliesRemovals, graph, type Graph } from 'permission-framework-explainer/core';
 import { useLoadedInstance } from '../instance';
-import { permissionPath } from '../paths';
+import { permissionPath, sourcePath } from '../paths';
 import { DiffBlock } from './DiffBlock';
 import { IdLink } from './IdLink';
 import { ImplicationSubgraph } from './ImplicationSubgraph';
@@ -106,7 +106,7 @@ function ImplicationDebugRow({
                     <p className="muted">No source YAML changes were found for these edges.</p>
                   ) : (
                     sourceDiffs.map((hunk) => (
-                      <DiffBlock key={hunk.name} filename={hunk.name}>
+                      <DiffBlock key={hunk.name} filename={hunk.name} filenameTo={sourcePath(instanceId, hunk.name)}>
                         {hunk.diff}
                       </DiffBlock>
                     ))
