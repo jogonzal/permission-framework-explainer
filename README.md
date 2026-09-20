@@ -74,7 +74,27 @@ endpoints:
     public: false               # optional, default false
 ```
 
-Full examples: [`examples/basic.yaml`](examples/basic.yaml), the same split across files in [`examples/split/`](examples/split), a GitHub-like model with roles in [`examples/github/`](examples/github), and deliberately broken configs in [`examples/invalid/`](examples/invalid).
+Full examples: [`examples/basic.yaml`](examples/basic.yaml), the same split across files in [`examples/split/`](examples/split), and deliberately broken configs in [`examples/invalid/`](examples/invalid).
+
+### Worked examples
+
+Each directory under `examples/` models a real system and stresses a different part of the DAG:
+
+| Example | What it shows |
+|---|---|
+| [`github/`](examples/github) | Repository roles (`role:read` to `role:admin`, `org:owner`) as permissions that imply finer ones |
+| [`stripe/`](examples/stripe) | Restricted API keys as permission sets; refunds and payouts need two leaf permissions |
+| [`slack/`](examples/slack) | Guests hold a subset of member permissions that is not a strict prefix, so the DAG is not a chain |
+| [`healthcare/`](examples/healthcare) | Narrow clinical roles; prescribing needs three leaves; a `break-glass` emergency permission |
+| [`multiplayer/`](examples/multiplayer) | Moderation and economy are sibling branches that only the developer role unifies |
+
+```
+$ permctl explain examples/healthcare --has role:nurse --endpoint "POST /fhir/MedicationRequest"
+DENY   endpoint "POST /fhir/MedicationRequest"
+  [--] medications.prescribe -> medication:prescribe   unmet (granted: role:nurse)
+  [ok] conditions.read -> condition:read   via role:nurse -> condition:read
+  [ok] patients.read -> patient:read   via role:nurse -> patient:read
+```
 
 ## CLI
 

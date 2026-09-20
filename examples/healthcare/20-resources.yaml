@@ -1,0 +1,13 @@
+resources:
+  - id: patients
+    actions: { demographics: patient:demographics, read: patient:read, register: patient:register, merge: patient:merge }
+  - id: appointments
+    actions: { read: appointment:read, book: appointment:book }
+  - id: observations
+    actions: { read: observation:read, record: observation:record }
+  - id: conditions
+    actions: { read: condition:read, diagnose: condition:diagnose }
+  - id: medications
+    actions: { read: medication:read, prescribe: medication:prescribe, dispense: medication:dispense, administer: medication:administer }
+  - id: audit
+    actions: { read: audit:read }

@@ -1,0 +1,33 @@
+endpoints:
+  - id: GET /v1/customers
+    requires: [customers.read]
+  - id: POST /v1/customers
+    requires: [customers.write]
+  - id: POST /v1/payment_methods/{id}/attach
+    requires: [payment-methods.write, customers.read]
+  - id: GET /v1/charges/{id}
+    requires: [charges.read]
+  - id: POST /v1/charges
+    requires: [charges.create]
+  - id: POST /v1/charges/{id}/capture
+    requires: [charges.capture]
+  - id: GET /v1/refunds
+    requires: [refunds.read]
+  - id: POST /v1/refunds
+    description: Refunding needs to see the charge as well as create the refund
+    requires: [refunds.create, charges.read]
+  - id: POST /v1/disputes/{id}
+    requires: [disputes.respond, charges.read]
+  - id: GET /v1/balance
+    requires: [balance.read]
+  - id: POST /v1/payouts
+    description: Moving money out needs the balance and payouts
+    requires: [payouts.create, balance.read]
+  - id: POST /v1/payouts/{id}/cancel
+    requires: [payouts.cancel]
+  - id: GET /v1/webhook_endpoints
+    requires: [webhooks.read]
+  - id: POST /v1/webhook_endpoints
+    requires: [webhooks.write]
+  - id: GET /healthcheck
+    public: true

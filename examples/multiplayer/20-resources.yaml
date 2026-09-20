@@ -1,0 +1,17 @@
+resources:
+  - id: profiles
+    actions: { read: profile:read, write: profile:write }
+  - id: matches
+    actions: { read: match:read, join: match:join, create: match:create, spectate: match:spectate, end: match:end }
+  - id: chat
+    actions: { read: chat:read, write: chat:write, mute: chat:mute }
+  - id: reports
+    actions: { create: report:create, review: report:review }
+  - id: bans
+    actions: { read: ban:read, issue: ban:issue, lift: ban:lift }
+  - id: economy
+    actions: { read: economy:read, grant: economy:grant, adjust: economy:adjust }
+  - id: server
+    actions: { read: server:read, config: server:config, restart: server:restart }
+  - id: telemetry
+    actions: { read: telemetry:read }

@@ -1,0 +1,51 @@
+# A FHIR-style electronic health record. Clinical roles are deliberately
+# narrow: a pharmacist can dispense but not prescribe, a nurse can record
+# observations but not diagnose, and prescribing needs two leaf permissions.
+permissions:
+  - id: patient:demographics
+    description: Name, date of birth, contact details
+  - id: patient:read
+    description: Full patient record
+    implies: [patient:demographics]
+  - id: patient:register
+    implies: [patient:demographics]
+  - id: patient:merge
+    description: Merge duplicate patient records
+    implies: [patient:read, patient:register]
+  - id: appointment:read
+  - id: appointment:book
+    implies: [appointment:read, patient:demographics]
+  - id: observation:read
+  - id: observation:record
+    description: Record vitals and lab results
+    implies: [observation:read]
+  - id: condition:read
+  - id: condition:diagnose
+    implies: [condition:read, observation:read]
+  - id: medication:read
+  - id: medication:prescribe
+    implies: [medication:read]
+  - id: medication:dispense
+    implies: [medication:read]
+  - id: medication:administer
+    implies: [medication:read]
+  - id: audit:read
+    description: Read the access audit trail
+  - id: break-glass
+    description: Emergency access to any record, always audited
+    implies: [patient:read, observation:read, condition:read, medication:read]
+
+  # ---- roles ----
+  - id: role:receptionist
+    implies: [patient:register, appointment:book]
+  - id: role:nurse
+    implies: [patient:read, appointment:read, observation:record, condition:read, medication:administer]
+  - id: role:physician
+    implies: [role:nurse, condition:diagnose, medication:prescribe, break-glass]
+  - id: role:pharmacist
+    implies: [patient:demographics, medication:dispense]
+  - id: role:records-officer
+    description: Health information management
+    implies: [patient:merge, audit:read]
+  - id: role:privacy-officer
+    implies: [audit:read]

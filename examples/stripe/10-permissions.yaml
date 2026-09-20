@@ -1,0 +1,46 @@
+# A Stripe-like payments API. Restricted API keys are modelled as permission
+# sets; refunds and payouts deliberately need more than one leaf permission.
+permissions:
+  - id: customers:read
+  - id: customers:write
+    implies: [customers:read]
+  - id: payment-methods:read
+  - id: payment-methods:write
+    implies: [payment-methods:read]
+  - id: charges:read
+  - id: charges:write
+    description: Create and capture charges
+    implies: [charges:read, customers:read, payment-methods:read]
+  - id: refunds:read
+  - id: refunds:write
+    description: Issue refunds
+    implies: [refunds:read]
+  - id: disputes:read
+  - id: disputes:write
+    description: Respond to disputes with evidence
+    implies: [disputes:read]
+  - id: payouts:read
+  - id: payouts:write
+    description: Create and cancel payouts
+    implies: [payouts:read]
+  - id: balance:read
+  - id: webhooks:read
+  - id: webhooks:write
+    implies: [webhooks:read]
+
+  # ---- key types ----
+  - id: key:read-only
+    description: Read-only restricted key
+    implies: [customers:read, payment-methods:read, charges:read, refunds:read, disputes:read, payouts:read, balance:read, webhooks:read]
+  - id: key:checkout
+    description: "Key for a checkout service: create customers and charges, never refund or pay out"
+    implies: [customers:write, payment-methods:write, charges:write]
+  - id: key:support
+    description: "Key for a support desk: read everything, refund and answer disputes"
+    implies: [key:read-only, refunds:write, disputes:write]
+  - id: key:finance
+    description: "Key for finance: read everything and move money out"
+    implies: [key:read-only, payouts:write]
+  - id: key:secret
+    description: The full secret key
+    implies: [key:checkout, key:support, key:finance, webhooks:write]

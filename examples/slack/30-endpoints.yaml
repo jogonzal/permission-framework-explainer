@@ -1,0 +1,40 @@
+endpoints:
+  - id: GET /api/conversations.list
+    requires: [channels.read]
+  - id: POST /api/conversations.join
+    requires: [channels.join]
+  - id: POST /api/conversations.create
+    requires: [channels.create]
+  - id: POST /api/conversations.archive
+    requires: [channels.archive]
+  - id: GET /api/conversations.history
+    requires: [channels.read, messages.read]
+  - id: POST /api/chat.postMessage
+    requires: [messages.write]
+  - id: POST /api/chat.delete
+    description: Deleting another person's message
+    requires: [messages.delete-any]
+  - id: POST /api/files.upload
+    requires: [files.upload]
+  - id: GET /api/users.list
+    requires: [members.read]
+  - id: POST /api/admin.users.invite
+    requires: [members.invite]
+  - id: POST /api/admin.users.remove
+    requires: [members.deactivate]
+  - id: POST /api/admin.users.setAdmin
+    requires: [members.roles]
+  - id: GET /api/apps.list
+    requires: [apps.read]
+  - id: POST /api/apps.install
+    requires: [apps.install]
+  - id: GET /api/team.info
+    requires: [workspace.read]
+  - id: POST /api/admin.teams.settings.set
+    requires: [workspace.settings]
+  - id: GET /api/team.billing.info
+    requires: [workspace.billing]
+  - id: POST /api/admin.teams.delete
+    requires: [workspace.delete, workspace.billing]
+  - id: GET /api/api.test
+    public: true

@@ -1,0 +1,18 @@
+resources:
+  - id: customers
+    actions: { read: customers:read, write: customers:write }
+  - id: payment-methods
+    actions: { read: payment-methods:read, write: payment-methods:write }
+  - id: charges
+    actions: { read: charges:read, create: charges:write, capture: charges:write }
+  - id: refunds
+    actions: { read: refunds:read, create: refunds:write }
+  - id: disputes
+    actions: { read: disputes:read, respond: disputes:write }
+  - id: payouts
+    actions: { read: payouts:read, create: payouts:write, cancel: payouts:write }
+  - id: balance
+    actions: { read: balance:read }
+  - id: webhooks
+    description: Webhook endpoints
+    actions: { read: webhooks:read, write: webhooks:write }

@@ -1,0 +1,34 @@
+endpoints:
+  - id: GET /fhir/metadata
+    description: Capability statement
+    public: true
+  - id: GET /fhir/Patient/{id}
+    requires: [patients.read]
+  - id: GET /fhir/Patient
+    description: Search by name and date of birth
+    requires: [patients.demographics]
+  - id: POST /fhir/Patient
+    requires: [patients.register]
+  - id: POST /fhir/Patient/$merge
+    requires: [patients.merge, audit.read]
+  - id: GET /fhir/Appointment
+    requires: [appointments.read]
+  - id: POST /fhir/Appointment
+    requires: [appointments.book]
+  - id: GET /fhir/Observation
+    requires: [observations.read, patients.read]
+  - id: POST /fhir/Observation
+    requires: [observations.record, patients.read]
+  - id: POST /fhir/Condition
+    requires: [conditions.diagnose, patients.read]
+  - id: POST /fhir/MedicationRequest
+    description: Prescribing needs the right to prescribe and to see the diagnosis
+    requires: [medications.prescribe, conditions.read, patients.read]
+  - id: POST /fhir/MedicationDispense
+    requires: [medications.dispense, patients.demographics]
+  - id: POST /fhir/MedicationAdministration
+    requires: [medications.administer, patients.read]
+  - id: GET /fhir/AuditEvent
+    requires: [audit.read]
+  - id: POST /fhir/Patient/{id}/$break-glass
+    requires: [break-glass]

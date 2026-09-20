@@ -1,0 +1,41 @@
+endpoints:
+  - id: GET /status
+    public: true
+  - id: GET /players/{id}
+    requires: [profiles.read]
+  - id: PATCH /players/me
+    requires: [profiles.write]
+  - id: GET /matches
+    requires: [matches.read]
+  - id: POST /matches
+    requires: [matches.create]
+  - id: POST /matches/{id}/join
+    requires: [matches.join]
+  - id: GET /matches/{id}/stream
+    requires: [matches.spectate]
+  - id: POST /matches/{id}/end
+    requires: [matches.end]
+  - id: POST /chat/{channel}/messages
+    requires: [chat.write]
+  - id: POST /chat/mute/{player}
+    requires: [chat.mute, profiles.read]
+  - id: POST /reports
+    requires: [reports.create]
+  - id: GET /reports
+    requires: [reports.review]
+  - id: POST /bans
+    requires: [bans.issue, profiles.read]
+  - id: DELETE /bans/{id}
+    requires: [bans.lift]
+  - id: POST /players/{id}/inventory
+    requires: [economy.grant]
+  - id: PUT /economy/prices
+    requires: [economy.adjust]
+  - id: GET /server/config
+    requires: [server.read]
+  - id: PUT /server/config
+    requires: [server.config]
+  - id: POST /server/restart
+    requires: [server.restart, telemetry.read]
+  - id: GET /telemetry
+    requires: [telemetry.read]

@@ -1,0 +1,13 @@
+resources:
+  - id: channels
+    actions: { read: channels:read, join: channels:join, create: channels:create, archive: channels:archive }
+  - id: messages
+    actions: { read: messages:read, write: messages:write, delete-any: messages:delete-any }
+  - id: files
+    actions: { read: files:read, upload: files:upload }
+  - id: members
+    actions: { read: members:read, invite: members:invite, deactivate: members:deactivate, roles: members:roles }
+  - id: apps
+    actions: { read: apps:read, install: apps:install }
+  - id: workspace
+    actions: { read: workspace:read, settings: workspace:settings, billing: workspace:billing, delete: workspace:delete }

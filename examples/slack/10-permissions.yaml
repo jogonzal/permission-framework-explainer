@@ -1,0 +1,58 @@
+# A Slack-like workspace. Guests hold a subset of member permissions that is
+# not a strict prefix (they can post but not create channels or view the
+# directory), so the DAG is not a single chain.
+permissions:
+  - id: channels:read
+    description: List and read public channels
+  - id: channels:join
+    implies: [channels:read]
+  - id: channels:create
+    implies: [channels:join]
+  - id: channels:archive
+    implies: [channels:read]
+  - id: messages:read
+  - id: messages:write
+    description: Post messages and replies
+    implies: [messages:read]
+  - id: messages:delete-any
+    description: Delete anyone's message
+    implies: [messages:write]
+  - id: files:read
+  - id: files:upload
+    implies: [files:read]
+  - id: members:read
+    description: View the member directory
+  - id: members:invite
+    implies: [members:read]
+  - id: members:deactivate
+    implies: [members:read]
+  - id: members:roles
+    description: Promote or demote members
+    implies: [members:read]
+  - id: apps:read
+  - id: apps:install
+    implies: [apps:read]
+  - id: workspace:read
+  - id: workspace:settings
+    implies: [workspace:read]
+  - id: workspace:billing
+    implies: [workspace:read]
+  - id: workspace:delete
+    implies: [workspace:settings, workspace:billing]
+
+  # ---- roles ----
+  - id: role:guest
+    description: Single-channel guest
+    implies: [messages:write, files:upload, channels:read]
+  - id: role:member
+    description: Full member
+    implies: [role:guest, channels:create, members:read, apps:read, workspace:read]
+  - id: role:admin
+    description: Workspace admin
+    implies: [role:member, channels:archive, messages:delete-any, members:invite, members:deactivate, apps:install, workspace:settings]
+  - id: role:owner
+    description: Workspace owner
+    implies: [role:admin, members:roles, workspace:billing]
+  - id: role:primary-owner
+    description: Primary owner; the only role that can delete the workspace
+    implies: [role:owner, workspace:delete]

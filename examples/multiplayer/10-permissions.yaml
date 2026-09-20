@@ -1,0 +1,55 @@
+# A multiplayer game server. Moderators can ban but not touch the economy,
+# game masters can touch the economy but not ban, and only developers hold
+# both, so no mid-tier role unifies the sibling branches.
+permissions:
+  - id: profile:read
+  - id: profile:write
+    implies: [profile:read]
+  - id: match:read
+  - id: match:join
+    implies: [match:read]
+  - id: match:create
+    implies: [match:join]
+  - id: match:spectate
+    implies: [match:read]
+  - id: match:end
+    description: Force-end a running match
+    implies: [match:read]
+  - id: chat:read
+  - id: chat:write
+    implies: [chat:read]
+  - id: chat:mute
+    implies: [chat:read]
+  - id: report:create
+  - id: report:review
+    implies: [report:create, chat:read, match:spectate]
+  - id: ban:read
+  - id: ban:issue
+    implies: [ban:read, report:review]
+  - id: ban:lift
+    implies: [ban:read]
+  - id: economy:read
+  - id: economy:grant
+    description: Grant currency or items to a player
+    implies: [economy:read, profile:read]
+  - id: economy:adjust
+    description: Change prices and drop rates
+    implies: [economy:read]
+  - id: server:read
+  - id: server:config
+    implies: [server:read]
+  - id: server:restart
+    implies: [server:read]
+  - id: telemetry:read
+
+  # ---- roles ----
+  - id: role:player
+    implies: [profile:write, match:create, chat:write, report:create]
+  - id: role:moderator
+    description: Community moderation; no economy access
+    implies: [role:player, chat:mute, ban:issue, ban:lift, match:end]
+  - id: role:game-master
+    description: Runs events; no ban powers
+    implies: [role:player, match:end, economy:grant, economy:adjust]
+  - id: role:developer
+    implies: [role:moderator, role:game-master, server:config, server:restart, telemetry:read]
