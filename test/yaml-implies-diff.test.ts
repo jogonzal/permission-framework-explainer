@@ -81,9 +81,9 @@ describe('diffImpliesRemovals', () => {
   });
 
   it('patches the healthcare source for a diamond implication', () => {
-    const text = readFileSync('examples/healthcare/10-permissions.yaml', 'utf8');
+    const text = readFileSync('examples/healthcare/permissions.yaml', 'utf8');
     const hunks = diffImpliesRemovals(
-      [{ name: 'examples/healthcare/10-permissions.yaml', text }],
+      [{ name: 'examples/healthcare/permissions.yaml', text }],
       [
         { from: 'role:physician', to: 'role:nurse' },
         { from: 'role:physician', to: 'break-glass' },

@@ -25,12 +25,12 @@ describe('loadDocuments / loadConfig', () => {
 
   it('merges a directory recursively, in sorted order, skipping other files', async () => {
     const loaded = await loadConfig(fixtures('dir'));
-    expect(loaded.files).toEqual(['10-permissions.yaml', '20-resources.json', path.join('nested', '30-endpoints.yml')]);
+    expect(loaded.files).toEqual([path.join('nested', 'endpoints.yml'), 'permissions.yaml', 'resources.json']);
     expect(loaded.config.permissions).toHaveLength(2);
     expect(loaded.config.resources).toHaveLength(1);
     expect(loaded.config.endpoints).toHaveLength(1);
     expect(validateConfig(loaded.config).ok).toBe(true);
-    expect(loaded.provenance.get('endpoint:GET /users/{id}')).toBe(path.join('nested', '30-endpoints.yml'));
+    expect(loaded.provenance.get('endpoint:GET /users/{id}')).toBe(path.join('nested', 'endpoints.yml'));
   });
 
   it('matches the split example to the single-file example', async () => {

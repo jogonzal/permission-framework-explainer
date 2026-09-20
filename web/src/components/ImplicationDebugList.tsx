@@ -92,7 +92,7 @@ function ImplicationDebugRow({
               />
               <p className="debug-actions">
                 <button type="button" className="debug-btn" onClick={() => setShowSourceDiff((value) => !value)}>
-                  {showSourceDiff ? 'Hide YAML changes' : 'Show changes required to remove this permission'}
+                  {showSourceDiff ? 'Hide YAML changes' : 'Show changes required to remove this connection'}
                 </button>
               </p>
               {showSourceDiff ? (
