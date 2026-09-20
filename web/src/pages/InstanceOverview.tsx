@@ -15,6 +15,7 @@ export function InstanceOverview() {
       </header>
       <div className="card-grid">
         <Link className="card" to={`/${meta.id}/permissions`}>
+          <p className="card-kicker">{permissions} nodes</p>
           <h2>Permissions</h2>
           <p>Nodes in the implication DAG.</p>
           <div className="counts">

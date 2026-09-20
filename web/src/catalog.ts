@@ -1,4 +1,6 @@
-import basic from '../../examples/basic.yaml?raw';
+import BASIC_YAML from '../../examples/basic.yaml?raw';
+
+export { BASIC_YAML };
 import githubPermissions from '../../examples/github/10-permissions.yaml?raw';
 import githubResources from '../../examples/github/20-resources.yaml?raw';
 import githubEndpoints from '../../examples/github/30-endpoints.yaml?raw';
@@ -27,7 +29,7 @@ export const CATALOG: readonly CatalogEntry[] = [
     id: 'basic',
     title: 'Basic',
     description: 'A minimal users, billing, and admin DAG.',
-    files: [basic],
+    files: [BASIC_YAML],
   },
   {
     id: 'github',

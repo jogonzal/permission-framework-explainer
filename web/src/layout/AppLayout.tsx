@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { SiteHeader } from '../components/SiteHeader';
 import { CATALOG, CATALOG_BY_ID } from '../catalog';
 import { loadInstance } from '../model';
 import { switchInstancePath } from '../paths';
@@ -15,12 +16,15 @@ export function AppLayout() {
 
   if (!instance || !CATALOG_BY_ID.has(instance) || !loaded) {
     return (
-      <div className="not-found">
-        <h1>Unknown instance</h1>
-        <p className="muted">There is no permission model named {instance ? <code>{instance}</code> : 'that'}.</p>
-        <p>
-          <Link to="/">Back to instances</Link>
-        </p>
+      <div className="app">
+        <SiteHeader />
+        <div className="not-found">
+          <h1>Unknown instance</h1>
+          <p className="muted">There is no permission model named {instance ? <code>{instance}</code> : 'that'}.</p>
+          <p>
+            <Link to="/">Back to PermCTL</Link>
+          </p>
+        </div>
       </div>
     );
   }
@@ -29,10 +33,7 @@ export function AppLayout() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <Link className="brand" to="/">
-          Permission explainer
-        </Link>
+      <SiteHeader>
         <label>
           <span className="visually-hidden">Instance</span>
           <select
@@ -64,7 +65,7 @@ export function AppLayout() {
             Graph
           </NavLink>
         </nav>
-      </header>
+      </SiteHeader>
       <main className={isGraph ? 'page-graph' : 'main'}>
         <Outlet context={loaded} />
       </main>

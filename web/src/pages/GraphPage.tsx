@@ -118,7 +118,7 @@ function GraphCanvas() {
           source: from,
           target: to,
           style: {
-            stroke: highlighted || !closure ? '#0f6e67' : '#d2c7b6',
+            stroke: highlighted || !closure ? '#3ee0b0' : '#3a4250',
             strokeWidth: highlighted ? 2 : 1,
           },
         });
@@ -160,11 +160,12 @@ function GraphCanvas() {
           edges={edges}
           nodeTypes={nodeTypes}
           onNodeClick={onNodeClick}
+          colorMode="dark"
           fitView
           minZoom={0.2}
           maxZoom={1.6}
         >
-          <Background color="#e4d8c4" gap={20} />
+          <Background color="#2a3140" gap={20} />
           <Controls />
           <MiniMap pannable zoomable />
         </ReactFlow>
